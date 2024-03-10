@@ -1,0 +1,193 @@
+﻿@page "/job/log"
+@using nScheduler.Domain.ViewModels.Jobs
+@using Domain.ViewModels.Configs
+@inject HttpRequest request
+@inject ToastService ToastService
+@inject DialogService DialogService
+@inject IJSRuntime JSRuntime
+
+<Table TItem="JobLogViewModel" IsStriped="true"
+       IsPagination="true" PageItemsSource="new int[] {10, 20, 30}"
+       ShowToolbar="false" ShowCardView="false"
+       ShowAddButton="false" ShowEditButton="false" ShowDeleteButton="false" ShowEmpty="true"
+       ShowSearch="true" ShowAdvancedSearch="true" CustomerSearchModel="SearchModel" SearchMode="SearchMode.Top" CollapsedTopSearch="true"
+       OnQueryAsync="OnQueryAsync">
+
+    <TableColumns>
+        @foreach (var col in context.GetTableColumns())
+        {
+            <TableColumn Field="@col.Key" FieldName="@col.Key" Text="@col.Value" />
+        }
+        <TableColumn Field="@context.Id" FieldName="Id" Text="操作">
+            <Template Context="Value">
+                <BootstrapInputGroup>
+                    <Button Size="Size.ExtraSmall" Icon="fas fa-eye" OnClick="async () => await ShowLog(Value.Row)">查看</Button>
+                    @if (context.State == JobStatus.Running)
+                    {
+                        <Button Size="Size.ExtraSmall" Icon="fas fa-ban" Color="Color.Danger" OnClick="async () => await StopJob(Value.Row) ">停止</Button>
+                    }
+                </BootstrapInputGroup>
+            </Template>
+        </TableColumn>
+    </TableColumns>
+
+    <CustomerSearchTemplate>
+        @if (context is JobSearchModel model)
+        {
+            <Row ColSpan="2" ItemsPerRow="ItemsPerRow.Two">
+                <BootstrapInput @bind-Value="model.Name" DisplayText="作业名称" ShowLabel="true"></BootstrapInput>
+                <DateTimeRange @bind-Value="model.SearchDate" DisplayText="执行时间" ShowLabel="true"></DateTimeRange>
+                <Select @bind-Value="model.ImageId" DisplayText="作业类型" ShowLabel="true" Items="@ImagesItems"></Select>
+                <Select @bind-Value="model.Status" DisplayText="作业状态" ShowLabel="true" Items="@StatusItems"></Select>
+            </Row>
+        }
+    </CustomerSearchTemplate>
+</Table>
+
+<style>
+    .console > .card-body {
+        margin-top: -17px;
+    }
+
+    .console > div {
+        white-space: pre-wrap;
+        white-space: -moz-pre-wrap;
+        white-space: -pre-wrap;
+        white-space: -o-pre-wrap;
+        word-wrap: break-word;
+    }
+</style>
+
+@code {
+    private int ConsoleHeight { get; set; } = 100;
+
+    private ITableSearchModel SearchModel { get; set; } = new JobSearchModel();
+
+    private IEnumerable<SelectedItem> ImagesItems { get; set; } = new SelectedItem[0];
+
+    private IEnumerable<SelectedItem> StatusItems { get; set; } = new SelectedItem[]
+    {
+        new SelectedItem("", "全部"),
+        new SelectedItem("0", "结束"),
+        new SelectedItem("1", "运行中"),
+        new SelectedItem("-1", "异常")
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var images = await request.List<ImageCfgViewModel>(HttpInterfaces.ImageList, "");
+        // 设置选项
+        var items = new List<SelectedItem>() { new SelectedItem("", "全部") };
+        items.AddRange(images.Items.Select(i => new SelectedItem(i.Id, i.Name)));
+        ImagesItems = items;
+    }
+
+    protected async void UpdateHeight()
+    {
+        ConsoleHeight = await JSRuntime.InvokeAsync<int>("Web.GetBodyHeightByClassName") - 150;
+        StateHasChanged();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UpdateHeight();
+        }
+        return Task.CompletedTask;
+    }
+
+    private async Task<QueryData<JobLogViewModel>> OnQueryAsync(QueryPageOptions options)
+    {
+        var customSearch = options.SearchModel as JobSearchModel;
+        var searchModel = new JobLogSearchViewModel
+            {
+                JobName = !customSearch.Name.IsEmpty() ? customSearch.Name : !options.SearchText.IsEmpty() ? options.SearchText : "",
+                ImageId = !customSearch.ImageId.IsEmpty() ? customSearch.ImageId.ToGuid() : null,
+                StartTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullStart,
+                EndTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullEnd,
+                Status = customSearch.Status
+            };
+
+        var result = await request.Page<JobLogViewModel>(HttpInterfaces.LogPage,
+           options.PageIndex, options.PageItems, searchModel);
+        if (result.Items.Count() > 0)
+        {
+            foreach (var item in result.Items)
+            {
+                if (ImagesItems.FirstOrDefault(x => x.Value == item.ImageId) is var img && img != null)
+                {
+                    item.ImageName = img.Text;
+                }
+            }
+        }
+
+        return new QueryData<JobLogViewModel>()
+            {
+                Items = result.Items,
+                TotalCount = result.Total,
+                IsSorted = false,
+                IsFiltered = false,
+                IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
+                IsAdvanceSearch = false
+            };
+    }
+
+    private async Task ShowLog(JobLogViewModel model)
+    {
+        var content = model.Content.IsEmpty() ? new string[] { "暂无相关信息" } : model.Content.Split("\n");
+
+        await DialogService.Show(new DialogOption()
+            {
+                Title = "作业日志",
+                ShowHeaderCloseButton = false,
+                Size = Size.ExtraLarge,
+                Component = BootstrapDynamicComponent.CreateComponent<BootstrapBlazor.Components.Console>(new Dictionary<string, object?>
+                    {
+                        { nameof(BootstrapBlazor.Components.Console.HeaderText), "" },
+                        { nameof(BootstrapBlazor.Components.Console.ShowLight), false },
+                        { nameof(BootstrapBlazor.Components.Console.Height), ConsoleHeight },
+                        { nameof(BootstrapBlazor.Components.Console.Items), content.Select(x => new ConsoleMessageItem() { Message = x })}
+                    })
+            });
+    }
+
+    private async Task StopJob(JobLogViewModel model)
+    {
+        try
+        {
+            var result = await request.From(HttpInterfaces.LogStop, "id=" + model.Id);
+            await ToastService.Success("停止作业", "停止作业成功", autoHide: true);
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("停止作业", "停止作业失败, " + ex.Message, autoHide: true);
+        }
+    }
+
+    private class JobSearchModel : ITableSearchModel
+    {
+        public string Name { get; set; }
+
+        public DateTimeRangeValue? SearchDate { get; set; }
+
+        public string ImageId { get; set; }
+
+        public string? Status { get; set; }
+
+        public IEnumerable<IFilterAction> GetSearches()
+        {
+            var rst = new List<IFilterAction>();
+            return rst;
+        }
+
+        public void Reset()
+        {
+            Name = string.Empty;
+            SearchDate = null;
+            ImageId = string.Empty;
+            Status = string.Empty;
+        }
+    }
+}
+

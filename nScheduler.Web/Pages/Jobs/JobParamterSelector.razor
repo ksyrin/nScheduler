@@ -1,0 +1,65 @@
+﻿@using nScheduler.Domain.ViewModels.Jobs
+@using Domain.ViewModels.Configs
+@inject HttpRequest Request
+
+@foreach (var config in Value)
+{
+    <br />
+    <div class="row form-inline">
+        <div style="width: 450px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="@config.ConfigName"></BootstrapInputGroupLabel>
+                @if (config.ConfigType == ParameterType.input)
+                {
+                    <BootstrapInput @bind-Value="@config.ConfigValue" OnValueChanged="(async (x) => await OnValueChanged(config, x))" />
+                }
+                else
+                {
+                    <Select Items="ParamItems" IsVirtualize="true" @bind-Value="@config.ConfigValue" OnValueChanged="(async (x) => await OnValueChanged(config, x))"></Select>
+                }
+            </BootstrapInputGroup>
+        </div>
+    </div>
+}
+
+
+
+@code {
+    [Parameter]
+    public List<JobConfigViewModel> Value { get; set; }
+
+    public IEnumerable<SelectedItem> ParamItems { get; set; }
+
+    [Parameter]
+    public EventCallback<List<JobConfigViewModel>> ValueChanged { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        foreach (var val in Value)
+        {
+            switch (val.ConfigType)
+            {
+                case ParameterType.input:
+                    break;
+                case ParameterType.param:
+                    if (ParamItems == null)
+                    {
+                        var tmp = new List<SelectedItem>() { new SelectedItem("", "") };
+                        var result = await Request.List<ParameterCfgListViewModel>(HttpInterfaces.ParamList, "");
+                        tmp.AddRange(result != null ? result!.Items.Select(i => new SelectedItem(i.Id, i.Name)) : new SelectedItem[0]);
+                        ParamItems = tmp;
+                    }
+                    break;
+            };
+        }
+    }
+
+    private async Task OnValueChanged(JobConfigViewModel cfg, string value)
+    {
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            cfg.ConfigValue = value;
+            await ValueChanged.InvokeAsync(Value);
+        }
+    }
+}

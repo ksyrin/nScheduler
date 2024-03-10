@@ -1,0 +1,98 @@
+﻿@page "/user/usr"
+@using Domain.ViewModels.Configs
+@inject HttpRequest request
+
+<DataGrid TItem="UserViewModel"
+          OnGetAsync="QueryList" OnEditAsync="Edit" OnRemoveAsync="Remove">
+    <EditorBody>
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户编码"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Id" Readonly="@(!string.IsNullOrWhiteSpace(context.Password) && !context.IsPwdChanged)" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户名称"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.UserName" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户密码"></BootstrapInputGroupLabel>
+                    <BootstrapPassword @bind-Value="@context.Password" OnValueChanged="@((val) => { context.IsPwdChanged = true;return Task.CompletedTask; })"></BootstrapPassword>
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户密码"></BootstrapInputGroupLabel>
+                    <Select @bind-Value="@context.Role"></Select>
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户邮箱"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Email" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="用户电话"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Phone" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+    </EditorBody>
+</DataGrid>
+
+@code {
+    private IEnumerable<SelectedItem> Items { get; set; } = MessageType.DingTalk.GetEnumDescriptions().Select(x => new SelectedItem(x.Key.ToString(), x.Value));
+
+    private async Task<(int, IEnumerable<UserViewModel>)> QueryList(QueryPageOptions options)
+    {
+        var result = await request.Page<UserViewModel>(HttpInterfaces.UserPage,
+           options.PageIndex, options.PageItems,
+           (options.SearchText.IsEmpty() ? "" : "&name=" + options.SearchText));
+        return (result.Total, result.Items);
+    }
+
+    private async Task<bool> Edit(UserViewModel item, bool isAdd)
+    {
+        var editModel = new UserEditViewModel()
+            {
+                UserName = item.UserName,
+                Password = item.Password,
+                Role = item.Role,
+                Email = item.Email,
+                Phone = item.Phone,
+                IsPwdChanged = item.IsPwdChanged
+            };
+        return await request.Json(HttpInterfaces.UserEdit + "?Id=" + item.Id, editModel);
+    }
+
+    private async Task<bool> Remove(UserViewModel item)
+    {
+        if (item != null && !string.IsNullOrWhiteSpace(item.Id))
+        {
+            return await request.From(HttpInterfaces.UserRemove, "id=" + item.Id);
+        }
+        return false;
+    }
+}
+

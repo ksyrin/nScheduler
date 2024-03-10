@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Dapper" Version="2.0.143" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.10" />
+		<PackageReference Include="MySql.Data" Version="8.1.0" />
+		<PackageReference Include="Npgsql" Version="7.0.4" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.110" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove="Repositories\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Repositories\" />
+	</ItemGroup>
+</Project>

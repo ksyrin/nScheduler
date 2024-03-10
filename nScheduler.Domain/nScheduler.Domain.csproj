@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <UserSecretsId>0152500e-acce-4ee1-a452-f019d6e5370b</UserSecretsId>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>1701;1702;CS8618</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Repositories\" />
+    <None Remove="Models\" />
+    <None Remove="Models\Users\" />
+    <None Remove="Models\Jobs\" />
+    <None Remove="Repositories\Environments\" />
+    <None Remove="Services\" />
+    <None Remove="Events\" />
+    <None Remove="ViewModels\" />
+    <None Remove="Models\Configs\" />
+    <None Remove="Repositories\Configs\" />
+    <None Remove="ViewModels\Configs\" />
+    <None Remove="ViewModels\Jobs\" />
+    <None Remove="ViewModels\Users\" />
+    <None Remove="Repositories\Users\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\Jobs\" />
+    <Folder Include="ViewModels\Jobs\" />
+    <Folder Include="Events\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\nScheduler.Common\nScheduler.Common.csproj" />
+  </ItemGroup>
+</Project>

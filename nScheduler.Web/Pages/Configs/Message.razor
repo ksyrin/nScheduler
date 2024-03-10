@@ -1,0 +1,73 @@
+﻿@page "/cfg/msg"
+@using Domain.ViewModels.Configs
+@inject HttpRequest request
+
+<DataGrid TItem="MessageCfgViewModel"
+          OnGetAsync="QueryList" OnEditAsync="Edit" OnRemoveAsync="Remove">
+    <EditorBody>
+        <div class="row form-inline">
+            <div>
+                <input type="hidden" @bind-value="@context.Id" />
+            </div>
+        </div>
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="消息名称"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Name" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="消息类型"></BootstrapInputGroupLabel>
+                    <Select @bind-Value="@context.MsgType" Items="@Items"></Select>
+                </BootstrapInputGroup>
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="消息地址"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Url" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+    </EditorBody>
+</DataGrid>
+
+@code {
+    private IEnumerable<SelectedItem> Items { get; set; } = MessageType.DingTalk.GetEnumDescriptions().Select(x => new SelectedItem(x.Key.ToString(), x.Value));
+
+    private async Task<(int, IEnumerable<MessageCfgViewModel>)> QueryList(QueryPageOptions options)
+    {
+        var result = await request.Page<MessageCfgViewModel>(HttpInterfaces.MessagePage,
+           options.PageIndex, options.PageItems,
+           (options.SearchText.IsEmpty() ? "" : "&name=" + options.SearchText));
+        return (result.Total, result.Items);
+    }
+
+    private async Task<bool> Edit(MessageCfgViewModel item, bool isAdd)
+    {
+        var editModel = new MessageCfgEditModel()
+        {
+            Name = item.Name,
+            Url = item.Url,
+            Type = item.MsgType
+        };
+        return await request.Json(HttpInterfaces.MessageEdit + (isAdd ? "" : "?Id=" + item.Id), editModel);
+    }
+
+    private async Task<bool> Remove(MessageCfgViewModel item)
+    {
+        if (item != null && !string.IsNullOrWhiteSpace(item.Id))
+        {
+            return await request.From(HttpInterfaces.MessageRemove, "id=" + item.Id);
+        }
+        return false;
+    }
+}
+

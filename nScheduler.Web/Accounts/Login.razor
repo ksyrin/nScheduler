@@ -1,0 +1,39 @@
+﻿@page "/login"
+@layout LoginLayout
+@using Domain.ViewModels.Accounts
+@inject AuthService authService
+@inject NavigationManager navigationManager
+@inject ToastService ToastService
+
+<div class="login-item">
+    <div class="text-center">
+        <h4 class="text-dark">用户登录</h4>
+    </div>
+    <Divider></Divider>
+    <div>
+        <BootstrapInput @bind-Value="loginModel.UserName" ShowLabel="false" PlaceHolder="请输入账号" />
+        <br />
+        <BootstrapPassword @bind-Value="loginModel.Password" ShowLabel="false" PlaceHolder="请输入密码" />
+        <br />
+        <Button Text="登录" Color="Color.Primary" OnClick="HandleLogin"></Button>
+    </div>
+</div>
+
+@code {
+    private LoginViewModel loginModel = new();
+
+    private async Task HandleLogin()
+    {
+        var result = await authService.Login(loginModel);
+        if (result.Code == 0)
+        {
+            await ToastService.Success("登录成功", "登录成功" , true);
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            await ToastService.Error("登录失败", "登陆失败, " + result.Msg, true);
+        }
+    }
+}
+

@@ -1,0 +1,704 @@
+﻿@using TimeCrontab
+
+<BootstrapInputGroup>
+    @if (!DisplayText.IsEmpty())
+    {
+        <BootstrapInputGroupLabel DisplayText="@DisplayText"></BootstrapInputGroupLabel>
+    }
+    <BootstrapInput @bind-Value="Value" PlaceHolder="设置定时运行..." OnValueChanged="OnValueChanged"></BootstrapInput>
+    <PopConfirmButton Placement="Placement"
+                      Icon="fas fa-bars-staggered"
+                      Color="Color.Primary"
+                      ConfirmButtonColor="Color.Info"
+                      CustomClass="custom-popover"
+                      Text="编辑"
+                      OnConfirm="OnSubmit">
+        <BodyTemplate>
+            <div class="d-flex align-items-center" style="width: 640px;">
+                <Tab IsCard="true">
+                    <TabItem Text="秒">
+                        <RadioList TValue="string" @bind-Value="Second.Selected" Items="SecondSelectItems"></RadioList>
+                        @if (Second.Selected != "each")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Second.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="Second.StartTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="秒  到"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="Second.EndTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="秒"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Second.Selected == "loop")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Second.BeginTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="秒开始 每"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Second.IntervalTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="秒执行一次"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Second.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-item" ShowBorder="false" Items="@ScdMin" @bind-Value="@Second.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                    <TabItem Text="分">
+                        <RadioList TValue="string" @bind-Value="@Minute.Selected" Items="MinuteSelectItems"></RadioList>
+                        @if (Minute.Selected != "each")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Minute.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Minute.StartTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="分  到"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Minute.EndTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="分"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Minute.Selected == "loop")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Minute.BeginTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="分开始 每"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="59" style="width: 60px;" @bind-Value="@Minute.IntervalTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="分执行一次"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Minute.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-item" ShowBorder="false" Items="@ScdMin" @bind-Value="@Minute.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                    <TabItem Text="时">
+                        <RadioList TValue="string" @bind-Value="@Hour.Selected" Items="HourSelectItems"></RadioList>
+                        @if (Hour.Selected != "each")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Hour.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="23" style="width: 60px;" @bind-Value="@Hour.StartTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="时  到"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="23" style="width: 60px;" @bind-Value="@Hour.EndTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="时"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Hour.Selected == "loop")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="23" style="width: 60px;" @bind-Value="@Hour.BeginTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="时开始 每"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="0" Max="23" style="width: 60px;" @bind-Value="@Hour.IntervalTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="时执行一次"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Hour.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-item" ShowBorder="false" Items="@Hours" @bind-Value="@Hour.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                    <TabItem Text="日">
+                        <RadioList TValue="string" @bind-Value="@Day.Selected" Items="DaySelectItems" OnSelectedChanged="OnDaySelected"></RadioList>
+                        @if (Day.Selected != "each" || Day.Selected != "last")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Day.Selected == "not")
+                        {
+                            <BootstrapLabel Value="指定周时，日 需设置为不指定"></BootstrapLabel>
+                        }
+                        else if (Day.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="31" style="width: 60px;" @bind-Value="Day.StartTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="日  到"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="31" style="width: 60px;" @bind-Value="Day.EndTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="日"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Day.Selected == "loop")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="31" style="width: 60px;" @bind-Value="Day.BeginTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="日开始 每"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="31" style="width: 60px;" @bind-Value="Day.IntervalTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="日执行一次"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Day.Selected == "month")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="离"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="31" style="width: 60px;" @bind-Value="Day.LeaveMonth"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="日最近工作日"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Day.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-item" ShowBorder="false" Items="@Days" @bind-Value="Day.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                    <TabItem Text="月">
+                        <RadioList TValue="string" @bind-Value="@Month.Selected" Items="MonthSelectItems"></RadioList>
+                        @if (Month.Selected != "each")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Month.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="12" style="width: 60px;" @bind-Value="@Month.StartTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="月  到"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="12" style="width: 60px;" @bind-Value="@Month.EndTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="月"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Month.Selected == "loop")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="12" style="width: 60px;" @bind-Value="@Month.BeginTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="月开始 每"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="12" style="width: 60px;" @bind-Value="@Month.IntervalTime"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="月执行一次"></BootstrapInputGroupLabel>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Month.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-item" ShowBorder="false" Items="@Months" @bind-Value="@Month.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                    <TabItem Text="周">
+                        <RadioList TValue="string" @bind-Value="@Week.Selected" Items="WeekSelectItems" OnSelectedChanged="OnWeekSelected"></RadioList>
+                        @if (Week.Selected != "each")
+                        {
+                            <Divider></Divider>
+                        }
+                        @if (Week.Selected == "not")
+                        {
+                            <BootstrapLabel Value="指定日时，周 需设置为不指定"></BootstrapLabel>
+                        }
+                        else if (Week.Selected == "week")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="从周"></BootstrapInputGroupLabel>
+                                <Select Items="@Weeks" @bind-Value="@Week.StartTime"></Select>
+                                <BootstrapInputGroupLabel DisplayText="到周"></BootstrapInputGroupLabel>
+                                <Select Items="@Weeks" @bind-Value="@Week.EndTime"></Select>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Week.Selected == "order")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="第"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="7" style="width: 60px;" @bind-Value="Week.OrderStartWeek"></BootstrapInputNumber>
+                                <BootstrapInputGroupLabel DisplayText="周的周"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="7" style="width: 60px;" @bind-Value="Week.OrderIntervalWeek"></BootstrapInputNumber>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Week.Selected == "month")
+                        {
+                            <BootstrapInputGroup>
+                                <BootstrapInputGroupLabel DisplayText="最后一个周"></BootstrapInputGroupLabel>
+                                <BootstrapInputNumber Min="1" Max="7" style="width: 60px;" @bind-Value="Week.LastWeek"></BootstrapInputNumber>
+                            </BootstrapInputGroup>
+                        }
+                        else if (Week.Selected == "more")
+                        {
+                            <CheckboxList CheckboxItemClass="custom-checkbox-week-item" ShowBorder="false" Items="@Weeks" @bind-Value="Week.ExecTimes"></CheckboxList>
+                        }
+                    </TabItem>
+                </Tab>
+            </div>
+        </BodyTemplate>
+    </PopConfirmButton>
+</BootstrapInputGroup>
+<Popover Placement="Placement.Auto" Title="@("最近执行时间")" Content="@Content" IsHtml="true" Trigger="click">
+    <Button Icon="fas fa-eye" Color="Color.None" style="margin-left: 5px;" />
+</Popover>
+
+<style scoped>
+    .custom-popover {
+        --bs-popover-max-width: 800px;
+        max-width: 800px;
+    }
+
+    .custom-checkbox-item {
+        --bb-checkbox-item-width: 60px;
+        --bs-border-width: 0px;
+        padding-left: 0px;
+    }
+
+        .custom-checkbox-item .form-check {
+            padding-left: 0px;
+        }
+
+    .form-check-input {
+        --bs-border-width: 1px;
+    }
+
+    .tabs-card {
+        width: 640px;
+    }
+
+    .custom-checkbox-week-item {
+        --bb-checkbox-item-width: 120px;
+        --bs-border-width: 0px;
+        padding-left: 0px;
+    }
+
+        .custom-checkbox-week-item .form-check {
+            padding-left: 0px;
+        }
+</style>
+
+@code {
+    [Parameter]
+    public string DisplayText { get; set; }
+
+    [Parameter]
+    public Placement Placement { get; set; } = Placement.Auto;
+
+    [Parameter]
+    public string Value { get; set; }
+
+    [Parameter]
+    public DateTime StartTime { get; set; }
+
+    [Parameter]
+    public DateTime EndTime { get; set; }
+
+    // public string Content { get; set; }
+
+    [Parameter]
+    public EventCallback<string> ValueChanged { get; set; }
+
+    private UniSelectedObject Second { get; set; } = new() { ExecTimes = new int[] { 0 } };
+
+    private UniSelectedObject Minute { get; set; } = new() { ExecTimes = new int[] { 0 } };
+
+    private UniSelectedObject Hour { get; set; } = new() { ExecTimes = new int[] { 0 } };
+
+    private DaySelectedObject Day { get; set; } = new() { ExecTimes = new int[] { 1 } };
+
+    private UniSelectedObject Month { get; set; } = new() { StartTime = 1, EndTime = 1, BeginTime = 1, IntervalTime = 2, ExecTimes = new int[] { 1 } };
+
+    private WeekSelectedObject Week { get; set; } = new() { ExecTimes = new string[] { "MON" } };
+
+    protected override Task OnParametersSetAsync()
+    {
+        if (!string.IsNullOrWhiteSpace(Value))
+        {
+            try
+            {
+                ExplainExpress();
+            }
+            catch
+            {
+                Value = "* * * * * ? ";
+                ExplainExpress();
+            }
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void ExplainExpress()
+    {
+        var arr = Value.Split(" ");
+        if (arr.Length > 5)
+        {
+            Second.SetValue(arr[0]);
+            Minute.SetValue(arr[1]);
+            Hour.SetValue(arr[2]);
+            Day.SetValue(arr[3]);
+            Month.SetValue(arr[4]);
+            Week.SetValue(arr[5]);
+        }
+        else
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    private async Task OnValueChanged(string value)
+    {
+        await ValueChanged.InvokeAsync(value);
+    }
+
+    private Task OnWeekSelected(IEnumerable<SelectedItem> items, string value)
+    {
+        Day.Selected = "not";
+        return Task.CompletedTask;
+    }
+
+    private Task OnDaySelected(IEnumerable<SelectedItem> items, string value)
+    {
+        Week.Selected = "not";
+        return Task.CompletedTask;
+    }
+
+    private async Task OnSubmit()
+    {
+        Value = string.Join(" ", Second.GetValue(), Minute.GetValue(), Hour.GetValue(), Day.GetValue(), Month.GetValue(), Week.GetValue()) + " ";
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private string Content
+    {
+        get
+        {
+            if (Value.IsEmpty())
+            {
+                return DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
+            }
+
+            try
+            {
+                var crontab = Crontab.Parse(Value, CronStringFormat.WithSeconds);
+                List<string> dts = new List<string>();
+                var nextTime = StartTime;
+                for (int i = 0; i < 5; i++)
+                {
+                    nextTime = crontab.GetNextOccurrence(nextTime);
+                    if (nextTime > EndTime)
+                    {
+                        dts.Add("第" + (i + 1) + "次 : 超出结束时间");
+                        break;
+                    }
+                    dts.Add("第" + (i + 1) + "次 : " + nextTime.ToString("yyyy/MM/dd HH:mm:ss"));
+                }
+                return string.Join("<br />", dts);
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+    }
+
+    #region 数据相关
+
+    private List<SelectedItem> ScdMin { get; set; } = GetDateTimeSelectedItem(0, 60);
+
+    private List<SelectedItem> Hours { get; set; } = GetDateTimeSelectedItem(0, 24);
+
+    private List<SelectedItem> Days { get; set; } = GetDateTimeSelectedItem(1, 31);
+
+    private List<SelectedItem> Months { get; set; } = GetDateTimeSelectedItem(1, 12);
+
+    private List<SelectedItem> Weeks { get; set; } = new List<SelectedItem>
+{
+       new SelectedItem("MON","星期一"),
+       new SelectedItem("TUE","星期二"),
+       new SelectedItem("WED","星期三"),
+       new SelectedItem("THU","星期四"),
+       new SelectedItem("FRI","星期五"),
+       new SelectedItem("SAT","星期六"),
+       new SelectedItem("SUN","星期日")
+    };
+
+    private static List<SelectedItem> GetDateTimeSelectedItem(int start, int count)
+    {
+        return Enumerable.Range(start, count).Select(x => new SelectedItem() { Text = (x < 10 ? "0" : "") + x, Value = "" + x }).ToList();
+    }
+
+    private static IEnumerable<SelectedItem> GetUniSelectedItems(string eachname)
+    {
+        return new SelectedItem[] {
+            new SelectedItem("each", eachname),
+            new SelectedItem("week", "周期"),
+            new SelectedItem("loop", "循环"),
+            new SelectedItem("more", "自定义")
+    };
+    }
+
+    private IEnumerable<SelectedItem> SecondSelectItems { get; set; } = GetUniSelectedItems("每秒");
+
+    private IEnumerable<SelectedItem> MinuteSelectItems { get; set; } = GetUniSelectedItems("每分");
+
+    private IEnumerable<SelectedItem> HourSelectItems { get; set; } = GetUniSelectedItems("每时");
+
+    private IEnumerable<SelectedItem> DaySelectItems { get; set; } = new SelectedItem[] {
+        new SelectedItem("each", "每日"),
+        new SelectedItem("not", "不指定"),
+        new SelectedItem("last", "月最后一日"),
+        new SelectedItem("week", "周期"),
+        new SelectedItem("loop", "循环"),
+        new SelectedItem("month", "每月"),
+        new SelectedItem("more", "自定义")
+    };
+
+    private IEnumerable<SelectedItem> MonthSelectItems { get; set; } = GetUniSelectedItems("每月");
+
+    private IEnumerable<SelectedItem> WeekSelectItems { get; set; } = new SelectedItem[] {
+        new SelectedItem("each", "每周"),
+        new SelectedItem("not", "不指定"),
+        new SelectedItem("week", "周期"),
+        new SelectedItem("order", "指定"),
+        new SelectedItem("month", "本月"),
+        new SelectedItem("more", "自定义")
+    };
+
+    #endregion
+
+    #region 自定义类
+
+    public class UniSelectedObject
+    {
+        public string Selected { get; set; } = "each";
+
+        public int StartTime { get; set; } = 0;
+
+        public int EndTime { get; set; } = 0;
+
+        public int BeginTime { get; set; } = 0;
+
+        public int IntervalTime { get; set; } = 0;
+
+        public IEnumerable<int> ExecTimes { get; set; } = new int[0];
+
+        public string GetValue()
+        {
+            switch (Selected)
+            {
+                case "each":
+                    return "*";
+                case "week":
+                    return StartTime + "-" + EndTime;
+                case "loop":
+                    return BeginTime + "/" + IntervalTime;
+                case "more":
+                    return string.Join(',', ExecTimes);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public void SetValue(string value)
+        {
+            // 纯数字时选择指定
+            if (int.TryParse(value, out var time))
+            {
+                Selected = "more";
+                ExecTimes = new int[] { time };
+                return;
+            }
+            // 其他情况
+            if (value.Contains("-") && value.Split("-") is var arr0 && arr0.Length > 1
+                && int.TryParse(arr0[0], out var _start) && int.TryParse(arr0[1], out var _end))
+            {
+                Selected = "week";
+                StartTime = _start;
+                EndTime = _end;
+            }
+            else if (value.Contains("/") && value.Split("/") is var arr1 && arr1.Length > 1
+                && int.TryParse(arr1[0], out var _begin) && int.TryParse(arr1[1], out var _interval))
+            {
+                Selected = "loop";
+                BeginTime = _begin;
+                IntervalTime = _interval;
+            }
+            else if (value.Contains(",") && value.Split(",") is var arr2 && arr2.Length > 0)
+            {
+                Selected = "more";
+                ExecTimes = arr2.Select(x => int.TryParse(x, out var tmp) ? tmp : -1).Where(x => x >= 0);
+            }
+            else
+            {
+                Selected = "each";
+            }
+        }
+    }
+
+    public class DaySelectedObject
+    {
+        public string Selected { get; set; } = "each";
+
+        public int StartTime { get; set; } = 1;
+
+        public int EndTime { get; set; } = 1;
+
+        public int BeginTime { get; set; } = 1;
+
+        public int IntervalTime { get; set; } = 1;
+
+        public int LeaveMonth { get; set; } = 1;
+
+        public IEnumerable<int> ExecTimes { get; set; } = new int[0];
+
+        public string GetValue()
+        {
+            switch (Selected)
+            {
+                case "each":
+                    return "*";
+                case "not":
+                    return "?";
+                case "last":
+                    return "L";
+                case "week":
+                    return StartTime + "-" + EndTime;
+                case "loop":
+                    return BeginTime + "/" + IntervalTime;
+                case "month":
+                    return LeaveMonth + "W";
+                case "more":
+                    return string.Join(',', ExecTimes);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public void SetValue(string value)
+        {
+            // 纯数字时选择指定
+            if (int.TryParse(value, out var time))
+            {
+                Selected = "more";
+                ExecTimes = new int[] { time };
+                return;
+            }
+            // 其他情况
+            if (value.Contains("-") && value.Split("-") is var arr0 && arr0.Length > 1
+               && int.TryParse(arr0[0], out var _start) && int.TryParse(arr0[1], out var _end))
+            {
+                Selected = "week";
+                StartTime = _start;
+                EndTime = _end;
+            }
+            else if (value.Contains("/") && value.Split("/") is var arr1 && arr1.Length > 1
+                && int.TryParse(arr1[0], out var _begin) && int.TryParse(arr1[1], out var _interval))
+            {
+                Selected = "loop";
+                BeginTime = _begin;
+                IntervalTime = _interval;
+            }
+            else if (value.Contains(",") && value.Split(",") is var arr2 && arr2.Length > 0)
+            {
+                Selected = "more";
+                ExecTimes = arr2.Select(x => int.TryParse(x, out var tmp) ? tmp : -1).Where(x => x >= 0);
+            }
+            else if (value.Contains("W") && value.Split("W") is var arr3 && arr3.Length > 0
+                 && int.TryParse(arr3[0], out var _leave))
+            {
+                Selected = "month";
+                LeaveMonth = _leave;
+            }
+            else if (value.Contains("?"))
+            {
+                Selected = "not";
+            }
+            else if (value.Contains("L"))
+            {
+                Selected = "last";
+            }
+            else
+            {
+                Selected = "each";
+            }
+        }
+    }
+
+    public class WeekSelectedObject
+    {
+        private string[] weekName = new string[] { "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN" };
+
+        public string Selected { get; set; } = "each";
+
+        public string StartTime { get; set; } = "MON";
+
+        public string EndTime { get; set; } = "MON";
+
+        public int OrderStartWeek { get; set; } = 1;
+
+        public int OrderIntervalWeek { get; set; } = 1;
+
+        public int LastWeek { get; set; } = 1;
+
+        public IEnumerable<string> ExecTimes { get; set; } = new string[0];
+
+        public string GetValue()
+        {
+            switch (Selected)
+            {
+                case "each":
+                    return "*";
+                case "not":
+                    return "?";
+                case "week":
+                    return StartTime + "-" + EndTime;
+                case "order":
+                    return OrderStartWeek + "#" + OrderIntervalWeek;
+                case "month":
+                    return LastWeek + "L";
+                case "more":
+                    return string.Join(',', ExecTimes);
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        public void SetValue(string value)
+        {
+            // 纯字符串时选择指定
+            if (weekName.Any(x => x == value))
+            {
+                Selected = "more";
+                ExecTimes = new string[] { value };
+                return;
+            }
+            // 其他情况
+            if (value.Contains("-") && value.Split("-") is var arr0 && arr0.Length > 1
+              && weekName.Any(x => x == arr0[0]) && weekName.Any(x => x == arr0[1]))
+            {
+                Selected = "week";
+                StartTime = arr0[0];
+                EndTime = arr0[1];
+            }
+            else if (value.Contains(",") && value.Split(",") is var arr2 && arr2.Length > 0)
+            {
+                Selected = "more";
+                ExecTimes = arr2.Select(x => weekName.Any(w => w == x) ? x : string.Empty).Where(x => !string.IsNullOrWhiteSpace(x));
+            }
+            else if (value.Contains("#") && value.Split("#") is var arr3 && arr3.Length > 0
+                 && int.TryParse(arr3[0], out var _orders) && int.TryParse(arr3[1], out var _orderi))
+            {
+                Selected = "order";
+                OrderStartWeek = _orders;
+                OrderIntervalWeek = _orderi;
+            }
+            else if (value.Contains("L") && value.Split("L") is var arr4 && arr4.Length > 0
+                 && int.TryParse(arr4[0], out var _last))
+            {
+                Selected = "month";
+                LastWeek = _last;
+            }
+            else if (value.Contains("?"))
+            {
+                Selected = "not";
+            }
+            else
+            {
+                Selected = "each";
+            }
+        }
+
+    }
+    #endregion
+}

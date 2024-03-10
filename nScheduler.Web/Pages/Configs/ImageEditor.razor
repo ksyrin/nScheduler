@@ -1,0 +1,86 @@
+﻿@using Domain.ViewModels.Configs
+
+<div class="row">
+    <div>
+        <input type="hidden" @bind-value="@Model.Id" />
+    </div>
+</div>
+<br />
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <BootstrapInputGroup>
+            <BootstrapInputGroupLabel DisplayText="镜像名称"></BootstrapInputGroupLabel>
+            <BootstrapInput @bind-Value="@Model.Name" />
+        </BootstrapInputGroup>
+    </div>
+</div>
+<br />
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <BootstrapInputGroup>
+            <BootstrapInputGroupLabel DisplayText="镜像地址"></BootstrapInputGroupLabel>
+            <BootstrapInput @bind-Value="@Model.ImageName" />
+        </BootstrapInputGroup>
+    </div>
+</div>
+<br />
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <Button Text="添加参数" Icon="fas fa-plus" OnClick="@(async e => await CreateParam(Model))"></Button>
+    </div>
+</div>
+<Scroll Height="250px;">
+    @foreach (var parm in Model.Configs)
+    {
+        <br />
+        <div class="row form-inline">
+            <div style="width: 450px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="镜像参数"></BootstrapInputGroupLabel>
+                    <Select @bind-Value="@parm.ParamType"></Select>
+                    <BootstrapInput @bind-Value="@parm.ParamName" />
+                    <Button Icon="fas fa-trash-can" OnClick="@(async e =>await RemoveParam(parm!))"></Button>
+                </BootstrapInputGroup>
+            </div>
+        </div>
+    }
+</Scroll>
+
+@code {
+    private IEnumerable<SelectedItem> Types = ParameterType.input.GetEnumDescriptions().Select(x => new SelectedItem(x.Key.ToString(), x.Value));
+
+    [Parameter]
+    public ImageCfgViewModel Model { get; set; }
+
+    private Task CreateParam(ImageCfgViewModel item)
+    {
+        item.Configs.Add(new ImageCfgParamModel());
+
+        return Task.CompletedTask;
+    }
+
+    private Task RemoveParam(ImageCfgParamModel item)
+    {
+        Model.Configs.Remove(item);
+
+        return Task.CompletedTask;
+    }
+
+    //private Task OnItemChanged(SelectedItem item)
+    //{
+    //    if (imageCfgs == null) return Task.CompletedTask;
+    //    var cfg = imageCfgs.FirstOrDefault(x => x.Id == item.Value);
+    //    Configs = new();
+    //    foreach (var par in cfg.Configs)
+    //    {
+    //        if (!par.ParamName.IsEmpty())
+    //            Configs.Add(new JobConfigViewModel
+    //                {
+    //                    ConfigName = par.ParamName,
+    //                    ConfigType = par.ParamType
+    //                });
+    //    }
+    //    return Task.CompletedTask;
+    //}
+}
+

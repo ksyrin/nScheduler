@@ -1,0 +1,80 @@
+﻿@typeparam TItem where TItem : class, new()
+@using System.Reflection
+
+<CascadingValue Value="this">
+    <Table TItem="TItem" IsStriped="true"
+           IsPagination="true" PageItemsSource="new int[] {10, 20, 30}"
+           ShowToolbar="true" ShowExtendButtons="true"
+           ShowEditButton="false" ShowDeleteButton="false" ShowEmpty="true"
+           ShowSearch="true" ShowCardView="false" ShowAdvancedSearch="false"
+           OnQueryAsync="OnQueryAsync" ShowLoading="true"
+           OnAddAsync="@OnAddAsync" OnSaveAsync="@OnSaveAsync" OnDeleteAsync="@OnDeleteAsync">
+
+        <TableColumns>
+            @foreach (var col in context.GetTableColumns())
+            {
+                <TableColumn Field="@col.Key" FieldName="@col.Key" Text="@col.Value" />
+            }
+        </TableColumns>
+
+        <EditTemplate>
+            @EditorBody(context)
+        </EditTemplate>
+    </Table>
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public RenderFragment<TItem> EditorBody { get; set; }
+
+    [Parameter]
+    public Func<QueryPageOptions, Task<(int, IEnumerable<TItem>)>> OnGetAsync { get; set; }
+
+    [Parameter]
+    public Func<TItem, bool, Task<bool>> OnEditAsync { get; set; }
+
+    [Parameter]
+    public Func<TItem, Task<bool>> OnRemoveAsync { get; set; }
+
+
+    private async Task<QueryData<TItem>> OnQueryAsync(QueryPageOptions options)
+    {
+        var result = await OnGetAsync(options);
+        return new QueryData<TItem>()
+        {
+            Items = result.Item2,
+            TotalCount = result.Item1,
+            IsSorted = false,
+            IsFiltered = false,
+            IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
+            IsAdvanceSearch = false
+        };
+    }
+
+    private Task<TItem> OnAddAsync()
+    {
+        return Task.FromResult(new TItem());
+    }
+
+    private async Task<bool> OnSaveAsync(TItem item, ItemChangedType changedType)
+    {
+        return await OnEditAsync(item, changedType == ItemChangedType.Add);
+    }
+
+    private async Task<bool> OnDeleteAsync(IEnumerable<TItem> items)
+    {
+        var item = items.FirstOrDefault();
+        return await OnRemoveAsync(item);
+    }
+
+    public void Refresh()
+    {
+        StateHasChanged();
+    }
+
+    public Task RefreshAsync()
+    {
+        return InvokeAsync(() => StateHasChanged());
+    }
+}
+

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Docker.DotNet" Version="3.125.15" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
+		<PackageReference Include="Quartz" Version="3.5.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove="Repositories\" />
+		<None Remove="Repositories\Environments\" />
+		<None Remove="Services\" />
+		<None Remove="Events\" />
+		<None Remove="Repositories\Configs\" />
+		<None Remove="Jobs\" />
+		<None Remove="Repositories\Users\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Services\" />
+		<Folder Include="Repositories\Configs\" />
+		<Folder Include="Jobs\" />
+		<Folder Include="Repositories\Users\" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+
+<div class="wrap">
+    <div class="box">
+        <Card IsCenter="true" IsShadow="true">
+            <BodyTemplate>
+                @Body
+            </BodyTemplate>
+        </Card>
+    </div>
+</div>
+
+<style>
+    .wrap {
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+
+    .box {
+        position: absolute;
+        width: 400px;
+        height: 800px;
+        left: 50%;
+        margin-left: -200px;
+        margin-top: 150px;
+    }
+</style>

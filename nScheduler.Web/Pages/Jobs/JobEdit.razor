@@ -1,0 +1,111 @@
+﻿@using nScheduler.Domain.ViewModels.Jobs
+@using Domain.ViewModels.Configs
+@inject HttpRequest Request
+@inject NavigationManager Navigation
+
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <input type="hidden" @bind-value="@Id" />
+    </div>
+</div>
+
+<br />
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <BootstrapInputGroup>
+            <BootstrapInputGroupLabel DisplayText="作业名称"></BootstrapInputGroupLabel>
+            <BootstrapInput @bind-Value="@Value.Name" maxlength="50" ShowLabel="true" />
+        </BootstrapInputGroup>
+    </div>
+</div>
+
+<br />
+<div class="row g-3 form-inline">
+    <div style="width: 640px;">
+        <BootstrapInputGroup>
+            <BootstrapInputGroupLabel DisplayText="作业时间"></BootstrapInputGroupLabel>
+            <DateTimePicker @bind-Value="Value.StartTime" TValue="DateTime" ViewMode="DatePickerViewMode.DateTime" Format="yyyy-MM-dd HH:mm:ss"></DateTimePicker>
+            &nbsp;-&nbsp;
+            <DateTimePicker @bind-Value="Value.EndTime" TValue="DateTime" ViewMode="DatePickerViewMode.DateTime" Format="yyyy-MM-dd HH:mm:ss"></DateTimePicker>
+        </BootstrapInputGroup>
+    </div>
+</div>
+
+<br />
+<div class="row form-inline">
+    <div style="width: 640px;">
+        <CronSelector DisplayText="定时作业" @bind-Value="@Value.Cron" StartTime="@Value.StartTime" EndTime="@Value.EndTime"></CronSelector>
+    </div>
+</div>
+
+<br />
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <BootstrapInputGroup>
+            <BootstrapInputGroupLabel DisplayText="镜像地址"></BootstrapInputGroupLabel>
+            <Select IsVirtualize="true" Items="Items" @bind-Value="@Value.ImageId" OnSelectedItemChanged="OnItemChanged"></Select>
+        </BootstrapInputGroup>
+    </div>
+</div>
+
+@if (Value.Configs != null)
+{
+    <JobParamterSelector Value="@Value.Configs"></JobParamterSelector>
+}
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    [Parameter]
+    public JobViewModel Value { get; set; } = new() { Cron = "0 0 0 * * ?" };
+
+    [Parameter]
+    public EventCallback<JobViewModel> ValueChanged { get; set; }
+
+    private IEnumerable<ImageCfgViewModel> imageCfgs;
+
+    private IEnumerable<SelectedItem> Items { get; set; } = new SelectedItem[0];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var images = await Request.List<ImageCfgViewModel>(HttpInterfaces.ImageList, "");
+        // 缓存选项
+        imageCfgs = images.Items;
+        // 设置选项
+        Items = images.Items.Select(i => new SelectedItem(i.Id, i.Name));
+        // 获取作业信息
+        if (!Id.IsEmpty())
+        {
+            var result = await Request.Get<JobViewModel>(HttpInterfaces.JobInfo + "?id=" + Id);
+            if (result != null)
+            {
+                Value = result!;
+                await ValueChanged.InvokeAsync(Value);
+            }
+        }
+    }
+
+    private Task OnItemChanged(SelectedItem item)
+    {
+        if (Value.ImageId == item.Value && Value.Configs.Count > 0)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (imageCfgs == null) return Task.CompletedTask;
+        var cfg = imageCfgs.FirstOrDefault(x => x.Id == item.Value);
+        Value.Configs = new();
+        foreach (var par in cfg.Configs)
+        {
+            if (!par.ParamName.IsEmpty())
+                Value.Configs.Add(new JobConfigViewModel
+                    {
+                        ConfigName = par.ParamName,
+                        ConfigType = par.ParamType
+                    });
+        }
+        return Task.CompletedTask;
+    }
+}
+

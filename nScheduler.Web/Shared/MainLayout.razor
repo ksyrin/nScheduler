@@ -1,0 +1,91 @@
+﻿@inherits LayoutComponentBase
+@using System.Security.Claims
+@inject IJSRuntime JSRuntime
+
+<Layout ShowFooter="false" SideWidth="0" IsPage="true" IsFullSide="true" ShowCollapseBar="true" Menus="menuItems">
+    <Header>
+        <div style="width: 100%">
+            <div style="display:inline-block; padding-left: 10px;">
+                nScheduler任务调度中心
+            </div>
+            <div style="display: inline-block; float: right;">
+                <span>@userName</span>
+                <span>&nbsp;-&nbsp;</span>
+                <span>@userRole</span>
+                <a href="/logout">[注销]</a>
+            </div>
+        </div>
+    </Header>
+    <Side>
+        <div style="height: 50px;">
+        </div>
+    </Side>
+    <Main>
+        <article class="content px-4" style="@($"height:{BodyHeight}px;")">
+            @Body
+        </article>
+    </Main>
+</Layout>
+
+@code {
+    private int BodyHeight { get; set; }
+
+    [CascadingParameter]
+    private Task<AuthenticationState> authenticationStateTask { get; set; }
+
+    private string userName { get; set; }
+
+    private string userRole { get; set; }
+
+    private List<MenuItem> menuItems { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await authenticationStateTask;
+        userName = auth.User.Identity?.Name;
+        if (userName == null) return;
+        var roleStr = auth.User.Claims!.FirstOrDefault(x => x.Type == ClaimTypes.Role)!.Value;
+
+        var role = Enum.Parse<UserRole>(roleStr);
+        userRole = role.GetEnumDescription();
+
+        menuItems.Add(new MenuItem("首页", "/", ""));
+        menuItems.Add(new MenuItem("作业管理", "", "")
+            {
+                Items = new List<MenuItem>() {
+                new MenuItem("新增作业", "/job/create", ""),
+                new MenuItem("作业管理","/job/page",""),
+                new MenuItem("作业日志", "/job/log","")
+            },
+                IsCollapsed = false
+            });
+        var cfgMenus = new List<MenuItem>() {
+            new MenuItem("参数配置","/cfg/param",""),
+            new MenuItem("消息配置","/cfg/msg","")
+        };
+        if (role == UserRole.Manager || role == UserRole.Admin)
+            cfgMenus.Add(new MenuItem("镜像配置", "/cfg/img", ""));
+        if (role == UserRole.Admin)
+            cfgMenus.Add(new MenuItem("用户管理", "/user/usr", ""));
+        menuItems.Add(new MenuItem("配置管理", "", "")
+            {
+                Items = new List<MenuItem>(cfgMenus),
+                IsCollapsed = false
+            });
+    }
+
+    protected async void UpdateHeight()
+    {
+        BodyHeight = await JSRuntime.InvokeAsync<int>("Web.GetBodyHeightByClassName");
+        StateHasChanged();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UpdateHeight();
+        }
+        return Task.CompletedTask;
+    }
+}

@@ -1,0 +1,31 @@
+﻿@page "/job/create"
+@using nScheduler.Domain.ViewModels.Jobs
+@inject HttpRequest Request
+@inject NavigationManager Navigation
+@inject ToastService ToastService
+
+<div class="row form-inline">
+    <div style="width: 450px;">
+        <BootstrapInputGroup>
+            <Button Color="Color.Success" OnClick="@SaveJob">保存</Button>
+        </BootstrapInputGroup>
+
+    </div>
+</div>
+
+<JobEdit @bind-Value="@ViewModel"></JobEdit>
+
+@code {
+    public JobViewModel ViewModel { get; set; } = new() { Cron = "0 0 0 * * ?" };
+
+    private async Task SaveJob()
+    {
+        var result = await Request.Json(HttpInterfaces.JobEdit, ViewModel);
+        if (result)
+        {
+            await ToastService.Success("保存数据", "保存数据成功", autoHide: true);
+            Navigation.NavigateTo("/job/page");
+        }
+    }
+}
+

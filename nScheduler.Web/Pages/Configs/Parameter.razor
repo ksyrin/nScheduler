@@ -1,0 +1,62 @@
+﻿@page "/cfg/param"
+@using Domain.ViewModels.Configs
+@inject HttpRequest request
+
+<DataGrid TItem="ParameterCfgListViewModel"
+          OnGetAsync="QueryList" OnEditAsync="Edit" OnRemoveAsync="Remove">
+    <EditorBody>
+        <div class="rowform-inline">
+            <div>
+                <input type="hidden" @bind-value="@context.Id" />
+            </div>
+        </div>
+        <div class="row form-inline">
+            <div style="width: 350px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="参数名称"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Name" />
+                </BootstrapInputGroup>
+
+            </div>
+        </div>
+        <br />
+        <div class="row form-inline">
+            <div style="width: 350px;">
+                <BootstrapInputGroup>
+                    <BootstrapInputGroupLabel DisplayText="参数内容"></BootstrapInputGroupLabel>
+                    <BootstrapInput @bind-Value="@context.Content" />
+                </BootstrapInputGroup>
+            </div>
+        </div>
+    </EditorBody>
+</DataGrid>
+
+@code {
+    private async Task<(int, IEnumerable<ParameterCfgListViewModel>)> QueryList(QueryPageOptions options)
+    {
+        var result = await request.Page<ParameterCfgListViewModel>(HttpInterfaces.ParamPage,
+          options.PageIndex, options.PageItems,
+          (options.SearchText.IsEmpty() ? "" : "&name=" + options.SearchText));
+        return (result.Total, result.Items);
+    }
+
+    private async Task<bool> Edit(ParameterCfgListViewModel item, bool isAdd)
+    {
+        var editModel = new ParameterCfgEditViewModel()
+        {
+            Name = item.Name,
+            Content = item.Content
+        };
+        return await request.Json(HttpInterfaces.ParamEdit + (isAdd ? "" : "?Id=" + item.Id), editModel);
+    }
+
+    private async Task<bool> Remove(ParameterCfgListViewModel item)
+    {
+        if (item != null && !string.IsNullOrWhiteSpace(item.Id))
+        {
+            return await request.From(HttpInterfaces.ParamRemove, "id=" + item.Id);
+        }
+        return false;
+    }
+}
+

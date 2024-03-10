@@ -1,0 +1,255 @@
+﻿@page "/job/page"
+@using nScheduler.Domain.ViewModels.Jobs
+@using Domain.ViewModels.Configs
+@inject HttpRequest request
+@inject ToastService ToastService
+@inject DialogService DialogService
+
+<Table @ref="Table" TItem="JobListViewModel" IsStriped="true"
+       IsPagination="true" PageItemsSource="new int[] {10, 20, 30}"
+       ShowToolbar="false" ShowCardView="false"
+       ShowAddButton="false" ShowEditButton="false" ShowDeleteButton="false" ShowEmpty="true"
+       ShowSearch="true" ShowAdvancedSearch="true" CustomerSearchModel="SearchModel" SearchMode="SearchMode.Top" CollapsedTopSearch="true"
+       OnQueryAsync="OnQueryAsync" ShowLoading="true">
+    <TableColumns>
+        @foreach (var col in context.GetTableColumns())
+        {
+            <TableColumn Field="@col.Key" FieldName="@col.Key" Text="@col.Value" />
+        }
+        <TableColumn Field="@context.Id" FieldName="Id" Text="操作">
+            <Template Context="Value">
+                <BootstrapInputGroup>
+                    <Button Size="Size.ExtraSmall" Icon="fas fa-bullhorn" Color="Color.Success" OnClick="@( async e => await ExecJob(Value.Value))">执行</Button>
+                    <Button Size="Size.ExtraSmall" Icon="fa-regular fa-pen-to-square" Color="Color.Primary" OnClick="@( async e => await EditJob(Value.Value))">编辑</Button>
+                    <Button Size="Size.ExtraSmall" Icon="fas fa-ban" Color="Color.Danger" OnClick="@( async e => await InvalidJob(Value.Value))">失效</Button>
+                </BootstrapInputGroup>
+            </Template>
+        </TableColumn>
+    </TableColumns>
+    <CustomerSearchTemplate>
+        @if (context is JobSearchModel model)
+        {
+            <Row ColSpan="2" ItemsPerRow="ItemsPerRow.Two">
+                <BootstrapInput @bind-Value="model.Name" DisplayText="作业名称" ShowLabel="true"></BootstrapInput>
+                <DateTimeRange @bind-Value="model.SearchDate" DisplayText="执行时间" ShowLabel="true"></DateTimeRange>
+                <Select @bind-Value="model.ImageId" DisplayText="作业类型" ShowLabel="true" Items="@ImagesItems"></Select>
+                <Select @bind-Value="model.Status" DisplayText="作业状态" ShowLabel="true" Items="@StatusItems"></Select>
+            </Row>
+        }
+    </CustomerSearchTemplate>
+</Table>
+
+@code {
+    private Table<JobListViewModel> Table { get; set; }
+
+    private JobViewModel jobModel { get; set; } = new();
+
+    private string Id { get; set; } = string.Empty;
+
+    private ITableSearchModel SearchModel { get; set; } = new JobSearchModel();
+
+    private IEnumerable<SelectedItem> ImagesItems { get; set; } = new SelectedItem[0];
+
+    private IEnumerable<SelectedItem> StatusItems { get; set; } = new SelectedItem[]
+    {
+        new SelectedItem("", "全部"),
+        new SelectedItem("0", "正常"),
+        new SelectedItem("1", "运行中"),
+        new SelectedItem("-1", "失效")
+                        };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var images = await request.List<ImageCfgViewModel>(HttpInterfaces.ImageList, "");
+        // 设置选项
+        var items = new List<SelectedItem>() { new SelectedItem("", "全部") };
+        items.AddRange(images.Items.Select(i => new SelectedItem(i.Id, i.Name)));
+        ImagesItems = items;
+    }
+
+    private async Task<QueryData<JobListViewModel>> OnQueryAsync(QueryPageOptions options)
+    {
+        var customSearch = options.SearchModel as JobSearchModel;
+        var searchModel = new JobInfoSearchViewModel
+            {
+                Name = !customSearch.Name.IsEmpty() ? customSearch.Name : !options.SearchText.IsEmpty() ? options.SearchText : "",
+                ImageId = !customSearch.ImageId.IsEmpty() ? customSearch.ImageId.ToGuid() : null,
+                StartTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullStart,
+                EndTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullEnd,
+                Status = customSearch.Status
+            };
+
+        //var result = await request.Page<JobListViewModel>(HttpInterfaces.JobPage,
+        //   options.PageIndex, options.PageItems,
+        //   (string.IsNullOrWhiteSpace(options.SearchText) ? "" : "&name=" + options.SearchText));
+
+        var result = await request.Page<JobListViewModel>(HttpInterfaces.JobPage,
+           options.PageIndex, options.PageItems, searchModel);
+
+        return new QueryData<JobListViewModel>()
+            {
+                Items = result.Items,
+                TotalCount = result.Total,
+                IsSorted = false,
+                IsFiltered = false,
+                IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
+                IsAdvanceSearch = false
+            };
+    }
+
+    /// <summary>
+    /// 执行作业
+    /// </summary>
+    /// <param name="id"></param>
+    private async Task ExecJob(string id)
+    {
+        try
+        {
+            var result = await request.From(HttpInterfaces.JobExec, "id=" + id);
+            if (result)
+            {
+                await ToastService.Success("执行作业", "执行作业成功", autoHide: true);
+                await Table.QueryAsync();
+            }
+            else
+            {
+                throw new Exception("执行作业失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("执行作业", "执行作业失败: " + ex.Message, autoHide: true);
+        }
+    }
+
+    /// <summary>
+    /// 编辑作业
+    /// </summary>
+    /// <param name="id"></param>
+    private async Task EditJob(string id)
+    {
+        Id = id;
+        var op = new DialogOption()
+            {
+                Title = "编辑作业",
+                Component = BootstrapDynamicComponent.CreateComponent<JobEdit>(new Dictionary<string, object?>()
+                {
+                    { nameof(JobEdit.Id), id },
+                    { nameof(JobEdit.Value), jobModel },
+                    { nameof(JobEdit.ValueChanged), EventCallback.Factory.Create<JobViewModel>(this, v => jobModel = v)}
+
+                }),
+                Size = Size.ExtraLarge,
+                IsCentered = true,
+                IsScrolling = true,
+                ShowSaveButton = true,
+                OnSaveAsync = SaveJob
+            };
+
+        await DialogService.Show(op);
+    }
+
+    /// <summary>
+    /// 保存作业
+    /// </summary>
+    /// <returns></returns>
+    private async Task<bool> SaveJob()
+    {
+        try
+        {
+            var result = await request.Json(HttpInterfaces.JobEdit + "?Id=" + Id, jobModel);
+            if (result)
+            {
+                await ToastService.Success("保存数据", "保存数据成功", autoHide: true);
+                return true;
+            }
+            else
+            {
+                throw new Exception("保存数据失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("保存数据", "保存数据失败: " + ex.Message, autoHide: true);
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 失效作业
+    /// </summary>
+    /// <param name="id"></param>
+    private async Task InvalidJob(string id)
+    {
+        try
+        {
+            var result = await request.From(HttpInterfaces.JobInValid, "id=" + id);
+            if (result)
+            {
+                await ToastService.Success("失效作业", "失效作业成功", autoHide: true);
+                await Table.QueryAsync();
+            }
+            else
+            {
+                throw new Exception("失效作业失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("失效作业", "失效作业失败: " + ex.Message, autoHide: true);
+        }
+    }
+
+    /// <summary>
+    /// 删除作业
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    private async Task RemoveJob(string id)
+    {
+        try
+        {
+            var result = await request.From(HttpInterfaces.JobRemove, "id=" + id);
+            if (result)
+            {
+                await ToastService.Success("删除作业", "删除作业成功", autoHide: true);
+                await Table.QueryAsync();
+            }
+            else
+            {
+                throw new Exception("删除作业失败");
+            }
+        }
+        catch (Exception ex)
+        {
+            await ToastService.Error("删除作业", "删除作业失败: " + ex.Message, autoHide: true);
+        }
+    }
+
+    private class JobSearchModel : ITableSearchModel
+    {
+        public string Name { get; set; }
+
+        public DateTimeRangeValue? SearchDate { get; set; }
+
+        public string ImageId { get; set; }
+
+        public int? Status { get; set; }
+
+        public IEnumerable<IFilterAction> GetSearches()
+        {
+            var rst = new List<IFilterAction>();
+            return rst;
+        }
+
+        public void Reset()
+        {
+            Name = string.Empty;
+            SearchDate = null;
+            ImageId = string.Empty;
+            Status = null;
+        }
+    }
+}
+
+

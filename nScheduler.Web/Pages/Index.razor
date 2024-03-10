@@ -1,0 +1,151 @@
+﻿@page "/"
+@using Domain.ViewModels.Accounts
+@inject HttpRequest Request
+
+<PageTitle>nScheduler任务调度中心</PageTitle>
+
+<div class="row g-3">
+    <div class="col-md-6 col-xl-4">
+        <Card IsShadow="true">
+            <BodyTemplate>
+                <div class="row align-items-center no-gutters">
+                    <div class="col me-2">
+                        <div class=" text-primary fw-bold mb-1"><span>作业总数量</span></div>
+                        <div class="text-dark fw-bold h5">
+                            <CountUp Value="@Data.JobAllCount"></CountUp>
+                        </div>
+                        <div class=" text-info fw-bold mb-1"><span>可运行作业数量</span></div>
+                        <div class="row g-0 align-items-center">
+                            <CountUp Value="@Data.JobCanRunCount"></CountUp>
+                        </div>
+                    </div>
+                </div>
+            </BodyTemplate>
+        </Card>
+    </div>
+    <div class="col-md-6 col-xl-4">
+        <Card IsShadow="true">
+            <BodyTemplate>
+                <div class="row align-items-center no-gutters">
+                    <div class="col me-2">
+                        <div class="text-primary fw-bold mb-1"><span>作业类型数量</span></div>
+                        <div class="text-dark fw-bold h5">
+                            <CountUp Value="@Data.ImageCount"></CountUp>
+                        </div>
+                        <div class="text-primary fw-bold mb-1"><span>参数配置数量</span></div>
+                        <div class="row g-0 align-items-center">
+                            <div class="col-auto">
+                                <CountUp Value="@Data.ParamCount"></CountUp>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </BodyTemplate>
+        </Card>
+    </div>
+    <div class="col-md-6 col-xl-4">
+        <Card IsShadow="true">
+            <BodyTemplate>
+                <div class="row align-items-center no-gutters">
+                    <div class="col me-2">
+                        <div class="text-primary fw-bold mb-1"><span>消息数量</span></div>
+                        <div class="text-dark fw-bold h5">
+                            <CountUp Value="@Data.MessageCount"></CountUp>
+                        </div>
+                        <div class="text-primary fw-bold mb-1"><span>当前用户数量</span></div>
+                        <div class="row g-0 align-items-center">
+                            <CountUp Value="@Data.UserCount"></CountUp>
+                        </div>
+                    </div>
+                </div>
+            </BodyTemplate>
+        </Card>
+    </div>
+    <div class="col-md-6">
+        <Card IsShadow="true" HeaderText="近一个月的作业执行">
+            <BodyTemplate>
+                <div class="chart-area">
+                    <Chart @ref="BarChart" Height="320px" Width="auto" style="display: block; width: auto; height: 320px;"
+                           ChartType="ChartType.Bar" OnInitAsync="OnInitBarChartAsync"></Chart>
+                </div>
+            </BodyTemplate>
+        </Card>
+    </div>
+    <div class="col-md-6">
+        <Card IsShadow="true" HeaderText="当前执行作业">
+            <BodyTemplate>
+                <div class="chart-area">
+                    <Chart @ref="PieChart" Height="320px" Width="auto" style="display: block; width: 332px; height: 320px;"
+                           ChartType="ChartType.Doughnut" OnInitAsync="@OnInitPieChartAsync"></Chart>
+                </div>
+            </BodyTemplate>
+        </Card>
+    </div>
+</div>
+
+@code {
+    private IndexViewModel Data { get; set; } = new();
+
+    private Chart BarChart { get; set; }
+
+    private Chart PieChart { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await Request.List<IndexViewModel>(HttpInterfaces.Index);
+        if (result != null)
+            Data = result!;
+    }
+
+    private Task<ChartDataSource> OnInitBarChartAsync()
+    {
+        var ds = new ChartDataSource();
+        if (Data.JobLogGroupDay.Any())
+        {
+            var set = new ChartDataset
+                {
+                    Label = "作业数量",
+                    Data = Data.JobLogGroupDay.Select(x => x.Value).Cast<object>()
+                };
+            ds.Options.Title = $"近一个月的作业执行";
+            ds.Options.X.Title = $"日期";
+            ds.Options.Y.Title = "作业数量";
+            ds.Options.ShowLegend = false;
+            ds.Labels = Data.JobLogGroupDay.Select(x => x.Key.ToString());
+            ds.Data.Add(set);
+        }
+
+        return Task.FromResult(ds);
+    }
+
+    private Task<ChartDataSource> OnInitPieChartAsync()
+    {
+        var ds = new ChartDataSource();
+        if (Data.JobTypeGroupDay.Any())
+        {
+            var set = new ChartDataset
+                {
+                    Label = $"10 月数量",
+                    Data = Data.JobTypeGroupDay.Select(x => x.Value).Cast<object>()
+                };
+            ds.Labels = Data.JobTypeGroupDay.Select(x => x.Key);
+            ds.Options.ShowLegend = false;
+            ds.Options.ShowXScales = false;
+            ds.Options.ShowYScales = false;
+            ds.Data.Add(set);
+        }
+        return Task.FromResult(ds);
+    }
+
+    /// <summary>
+    /// 根据数值大小获取颜色
+    /// </summary>
+    /// <param name = "value"></param>
+    private static Color GetColor(double value) => value switch
+    {
+        100 => Color.Success,
+        >= 50 => Color.Info,
+        >= 25 => Color.Danger,
+        _ => Color.Warning
+    };
+}

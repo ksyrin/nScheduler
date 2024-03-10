@@ -1,0 +1,42 @@
+﻿@page "/cfg/img"
+@using Domain.ViewModels.Configs
+@inject ILogger<Image> Logger
+@inject HttpRequest request
+
+<DataGrid TItem="ImageCfgViewModel"
+          OnGetAsync="QueryList" OnEditAsync="Edit" OnRemoveAsync="Remove">
+    <EditorBody>
+        <ImageEditor Model="@context"></ImageEditor>
+    </EditorBody>
+</DataGrid>
+
+@code {
+    private async Task<(int, IEnumerable<ImageCfgViewModel>)> QueryList(QueryPageOptions options)
+    {
+        var result = await request.Page<ImageCfgViewModel>(HttpInterfaces.ImagePage,
+            options.PageIndex, options.PageItems,
+            (options.SearchText!.IsEmpty() ? "" : "&name=" + options.SearchText));
+        return result == null ? (0, new ImageCfgViewModel[0]) : (result.Total, result.Items);
+    }
+
+    private async Task<bool> Edit(ImageCfgViewModel item, bool isAdd)
+    {
+        var editModel = new ImageCfgEditModel()
+        {
+            Name = item.Name,
+            ImageName = item.ImageName,
+            ConfigParams = item.Configs.Where(x => !x.ParamName.IsEmpty()).ToDictionary(x => x.ParamName, x => x.ParamType)
+        };
+        return await request.Json(HttpInterfaces.ImageEdit + (isAdd ? "" : "?Id=" + item.Id), editModel);
+    }
+
+    private async Task<bool> Remove(ImageCfgViewModel item)
+    {
+        if (item != null && !string.IsNullOrWhiteSpace(item.Id))
+        {
+            return await request.From(HttpInterfaces.ImageRemove, "id=" + item.Id);
+        }
+        return false;
+    }
+}
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+	<PropertyGroup Condition=" '$(RunConfiguration)' == 'http' ">
+		<ExternalConsole>true</ExternalConsole>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="BootstrapBlazor.Chart" Version="7.6.1" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.10" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.10" PrivateAssets="all" />
+		<PackageReference Include="BootstrapBlazor" Version="7.11.2" />
+		<PackageReference Include="BootstrapBlazor.FontAwesome" Version="7.5.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.4" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.1" />
+		<PackageReference Include="TimeCrontab" Version="3.3.6" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj">
+			<GlobalPropertiesToRemove>
+			</GlobalPropertiesToRemove>
+		</ProjectReference>
+	</ItemGroup>
+	<ItemGroup>
+		<None Remove="Pages\Configs\" />
+		<None Remove="Pages\Jobs\" />
+		<None Remove="Accounts\" />
+		<None Remove="Pages\Users\" />
+	</ItemGroup>
+	<ItemGroup>
+		<Folder Include="Accounts\" />
+	</ItemGroup>
+</Project>

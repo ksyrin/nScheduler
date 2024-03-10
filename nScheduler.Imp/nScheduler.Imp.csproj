@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.11" />
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="7.0.10" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.4" />
+		<PackageReference Include="Quartz" Version="3.5.0" />
+		<PackageReference Include="MediatR" Version="12.2.0" />
+		<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.0" />
+		<PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="Jobs\" />
+	  <None Remove="Repositories\" />
+	  <None Remove="Events\" />
+	  <None Remove="Events\JobInfo\" />
+	  <None Remove="Events\JobLog\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Jobs\" />
+	  <Folder Include="Events\JobInfo\" />
+	  <Folder Include="Events\JobLog\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj" />
+	  <ProjectReference Include="..\nScheduler.Exec\nScheduler.Exec.csproj" />
+	</ItemGroup>
+</Project>
