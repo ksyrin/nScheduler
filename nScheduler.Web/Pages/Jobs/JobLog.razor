@@ -59,8 +59,6 @@
 </style>
 
 @code {
-    private int ConsoleHeight { get; set; } = 100;
-
     private ITableSearchModel SearchModel { get; set; } = new JobSearchModel();
 
     private IEnumerable<SelectedItem> ImagesItems { get; set; } = new SelectedItem[0];
@@ -71,7 +69,7 @@
         new SelectedItem("0", "结束"),
         new SelectedItem("1", "运行中"),
         new SelectedItem("-1", "异常")
-    };
+        };
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,32 +80,17 @@
         ImagesItems = items;
     }
 
-    protected async void UpdateHeight()
-    {
-        ConsoleHeight = await JSRuntime.InvokeAsync<int>("Web.GetBodyHeightByClassName") - 150;
-        StateHasChanged();
-    }
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            UpdateHeight();
-        }
-        return Task.CompletedTask;
-    }
-
     private async Task<QueryData<JobLogViewModel>> OnQueryAsync(QueryPageOptions options)
     {
         var customSearch = options.SearchModel as JobSearchModel;
         var searchModel = new JobLogSearchViewModel
-            {
-                JobName = !customSearch.Name.IsEmpty() ? customSearch.Name : !options.SearchText.IsEmpty() ? options.SearchText : "",
-                ImageId = !customSearch.ImageId.IsEmpty() ? customSearch.ImageId.ToGuid() : null,
-                StartTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullStart,
-                EndTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullEnd,
-                Status = customSearch.Status
-            };
+        {
+            JobName = !customSearch.Name.IsEmpty() ? customSearch.Name : !options.SearchText.IsEmpty() ? options.SearchText : "",
+            ImageId = !customSearch.ImageId.IsEmpty() ? customSearch.ImageId.ToGuid() : null,
+            StartTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullStart,
+            EndTime = customSearch.SearchDate == null ? null : customSearch.SearchDate.NullEnd,
+            Status = customSearch.Status
+        };
 
         var result = await request.Page<JobLogViewModel>(HttpInterfaces.LogPage,
            options.PageIndex, options.PageItems, searchModel);
@@ -123,14 +106,14 @@
         }
 
         return new QueryData<JobLogViewModel>()
-            {
-                Items = result.Items,
-                TotalCount = result.Total,
-                IsSorted = false,
-                IsFiltered = false,
-                IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
-                IsAdvanceSearch = false
-            };
+        {
+            Items = result.Items,
+            TotalCount = result.Total,
+            IsSorted = false,
+            IsFiltered = false,
+            IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
+            IsAdvanceSearch = false
+        };
     }
 
     private async Task ShowLog(JobLogViewModel model)
@@ -138,18 +121,17 @@
         var content = model.Content.IsEmpty() ? new string[] { "暂无相关信息" } : model.Content.Split("\n");
 
         await DialogService.Show(new DialogOption()
-            {
-                Title = "作业日志",
-                ShowHeaderCloseButton = false,
-                Size = Size.ExtraLarge,
-                Component = BootstrapDynamicComponent.CreateComponent<BootstrapBlazor.Components.Console>(new Dictionary<string, object?>
-                    {
-                        { nameof(BootstrapBlazor.Components.Console.HeaderText), "" },
-                        { nameof(BootstrapBlazor.Components.Console.ShowLight), false },
-                        { nameof(BootstrapBlazor.Components.Console.Height), ConsoleHeight },
-                        { nameof(BootstrapBlazor.Components.Console.Items), content.Select(x => new ConsoleMessageItem() { Message = x })}
-                    })
-            });
+        {
+            Title = "作业日志",
+            ShowHeaderCloseButton = false,
+            Size = Size.ExtraLarge,
+            Component = BootstrapDynamicComponent.CreateComponent<BootstrapBlazor.Components.Console>(new Dictionary<string, object?>
+        {
+                { nameof(BootstrapBlazor.Components.Console.HeaderText), "" },
+                { nameof(BootstrapBlazor.Components.Console.ShowLight), false },
+                { nameof(BootstrapBlazor.Components.Console.Items), content.Select(x => new ConsoleMessageItem() { Message = x })}
+            })
+        });
     }
 
     private async Task StopJob(JobLogViewModel model)

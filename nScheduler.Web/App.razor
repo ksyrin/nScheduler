@@ -1,14 +1,10 @@
-﻿<CascadingAuthenticationState>
-    <BootstrapBlazorRoot>
+﻿
+<BootstrapBlazorRoot>
+    <CascadingAuthenticationState>
         <Router AppAssembly="@typeof(App).Assembly">
             <Found Context="routeData">
-                @*<RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />*@
                 <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
-                    <NotAuthorized>
-                        <RedirectToLogin></RedirectToLogin>
-                    </NotAuthorized>
                 </AuthorizeRouteView>
-                <FocusOnNavigate RouteData="@routeData" Selector="h1" />
             </Found>
             <NotFound>
                 <PageTitle>Not found</PageTitle>
@@ -17,5 +13,6 @@
                 </LayoutView>
             </NotFound>
         </Router>
-    </BootstrapBlazorRoot>
-</CascadingAuthenticationState>
+    </CascadingAuthenticationState>
+</BootstrapBlazorRoot>
+

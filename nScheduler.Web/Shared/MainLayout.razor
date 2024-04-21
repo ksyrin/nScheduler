@@ -1,91 +1,78 @@
 ﻿@inherits LayoutComponentBase
 @using System.Security.Claims
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
 
-<Layout ShowFooter="false" SideWidth="0" IsPage="true" IsFullSide="true" ShowCollapseBar="true" Menus="menuItems">
+<Layout ShowFooter="false" SideWidth="0" IsPage="true" IsFullSide="true"
+        ShowCollapseBar="true" IsFixedHeader="true" IsFixedFooter="true"
+        UseTabSet="true" Menus="@menuItems" TabDefaultUrl="/" NotFoundTabText="空白页面">
+    <NotAuthorized>
+        <RedirectToLogin></RedirectToLogin>
+    </NotAuthorized>
+    <NotFound>
+        <p role="alert">当前页面正在建设中...</p>
+    </NotFound>
     <Header>
-        <div style="width: 100%">
-            <div style="display:inline-block; padding-left: 10px;">
-                nScheduler任务调度中心
-            </div>
-            <div style="display: inline-block; float: right;">
-                <span>@userName</span>
-                <span>&nbsp;-&nbsp;</span>
-                <span>@userRole</span>
-                <a href="/logout">[注销]</a>
-            </div>
-        </div>
+        <span class="ms-3 flex-fill">nScheduler任务调度中心</span>
+        <Logout ImageUrl="icon-192.png" DisplayName="@Context!.UserName" UserName="@Context!.UserId">
+            <LinkTemplate>
+                <LogoutLink Url="/logout" />
+            </LinkTemplate>
+        </Logout>
     </Header>
     <Side>
-        <div style="height: 50px;">
+        <div class="layout-banner">
+            <img class="layout-logo" src="icon-192.png" />
+            <div class="layout-title">
+                <span>nScheduler</span>
+            </div>
         </div>
     </Side>
     <Main>
-        <article class="content px-4" style="@($"height:{BodyHeight}px;")">
-            @Body
-        </article>
+        @Body
     </Main>
 </Layout>
 
 @code {
-    private int BodyHeight { get; set; }
-
     [CascadingParameter]
-    private Task<AuthenticationState> authenticationStateTask { get; set; }
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
 
-    private string userName { get; set; }
-
-    private string userRole { get; set; }
+    private BootstrapAppContext? Context { get; set; }
 
     private List<MenuItem> menuItems { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var auth = await authenticationStateTask;
-        userName = auth.User.Identity?.Name;
-        if (userName == null) return;
-        var roleStr = auth.User.Claims!.FirstOrDefault(x => x.Type == ClaimTypes.Role)!.Value;
+        Context = new BootstrapAppContext(await authenticationStateTask!);
+        if (Context.UserName.IsEmpty()) return;
 
-        var role = Enum.Parse<UserRole>(roleStr);
-        userRole = role.GetEnumDescription();
-
-        menuItems.Add(new MenuItem("首页", "/", ""));
-        menuItems.Add(new MenuItem("作业管理", "", "")
-            {
-                Items = new List<MenuItem>() {
-                new MenuItem("新增作业", "/job/create", ""),
-                new MenuItem("作业管理","/job/page",""),
-                new MenuItem("作业日志", "/job/log","")
-            },
-                IsCollapsed = false
-            });
-        var cfgMenus = new List<MenuItem>() {
-            new MenuItem("参数配置","/cfg/param",""),
-            new MenuItem("消息配置","/cfg/msg","")
-        };
-        if (role == UserRole.Manager || role == UserRole.Admin)
-            cfgMenus.Add(new MenuItem("镜像配置", "/cfg/img", ""));
-        if (role == UserRole.Admin)
-            cfgMenus.Add(new MenuItem("用户管理", "/user/usr", ""));
-        menuItems.Add(new MenuItem("配置管理", "", "")
-            {
-                Items = new List<MenuItem>(cfgMenus),
-                IsCollapsed = false
-            });
+        ReloadMenus();
     }
 
-    protected async void UpdateHeight()
+    private void ReloadMenus()
     {
-        BodyHeight = await JSRuntime.InvokeAsync<int>("Web.GetBodyHeightByClassName");
-        StateHasChanged();
-    }
-
-    protected override Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        menuItems.Add(new MenuItem("首页", "/", "fas fa-house"));
+        menuItems.Add(new MenuItem("作业管理", "", "fas fa-file")
         {
-            UpdateHeight();
-        }
-        return Task.CompletedTask;
+            Items = new List<MenuItem>() {
+                new MenuItem("新增作业", "/job/create", "fas fa-file-circle-plus"),
+                new MenuItem("作业管理","/job/page","fas fa-file-code"),
+                new MenuItem("作业日志", "/job/log","fas fa-file-lines")
+            },
+            IsCollapsed = false
+        });
+        var cfgMenus = new List<MenuItem>() {
+            new MenuItem("参数配置","/cfg/param","fas fa-hammer"),
+            new MenuItem("消息配置","/cfg/msg","fas fa-message")
+        };
+        if (Context!.Role == UserRole.Manager || Context!.Role == UserRole.Admin)
+            cfgMenus.Add(new MenuItem("镜像配置", "/cfg/img", "fas fa-book"));
+        if (Context!.Role == UserRole.Admin)
+            cfgMenus.Add(new MenuItem("用户管理", "/user/usr", "fas fa-user-tie"));
+        menuItems.Add(new MenuItem("配置管理", "", "fas fa-gear")
+        {
+            Items = new List<MenuItem>(cfgMenus),
+            IsCollapsed = false
+        });
     }
 }
