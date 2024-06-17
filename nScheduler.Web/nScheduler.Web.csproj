@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
 	<PropertyGroup>
-		<TargetFramework>net7.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
@@ -9,15 +9,15 @@
 		<ExternalConsole>true</ExternalConsole>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="BootstrapBlazor.Chart" Version="7.6.1" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="7.0.10" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="7.0.10" PrivateAssets="all" />
-		<PackageReference Include="BootstrapBlazor" Version="7.11.2" />
-		<PackageReference Include="BootstrapBlazor.FontAwesome" Version="7.5.0" />
-		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="7.0.4" />
-		<PackageReference Include="Blazored.LocalStorage" Version="4.3.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.1" />
-		<PackageReference Include="TimeCrontab" Version="3.3.6" />
+		<PackageReference Include="BootstrapBlazor.Chart" Version="8.1.5" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="8.0.6" PrivateAssets="all" />
+		<PackageReference Include="BootstrapBlazor" Version="8.6.2" />
+		<PackageReference Include="BootstrapBlazor.FontAwesome" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.6" />
+		<PackageReference Include="Blazored.LocalStorage" Version="4.5.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.6.0" />
+		<PackageReference Include="TimeCrontab" Version="3.4.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj">
