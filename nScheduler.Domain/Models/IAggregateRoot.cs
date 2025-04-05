@@ -1,4 +1,6 @@
-﻿namespace nScheduler.Domain.Models;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace nScheduler.Domain.Models;
 
 public interface IAggregateRoot<T>
 {
@@ -7,6 +9,7 @@ public interface IAggregateRoot<T>
 
 public class BaseAggregateRoot<T> : IAggregateRoot<T>
 {
+    [Key]
     public T Id { get; init; }
 
     public string OperName { get; init; }

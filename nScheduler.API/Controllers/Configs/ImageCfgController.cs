@@ -34,7 +34,7 @@ public class ImageCfgController : Controller
                     Id = x.Id.ToStringN(),
                     Name = x.Name,
                     ImageName = x.ImageName,
-                    Configs = x.GetConfigs().Select(x => new ImageCfgParamModel() { ParamName = x.Key, ParamType = x.Value }).ToList(),
+                    Configs = x.GetConfigs().Select(x => new ImageCfgParamViewModel() { ParamName = x.Key, ParamType = x.Value }).ToList(),
                     OperName = x.OperName,
                     OperDate = x.OperTime.ToString("yyyy/MM/dd HH:mm:ss")
                 };
@@ -57,7 +57,7 @@ public class ImageCfgController : Controller
                     Id = x.Id.ToStringN(),
                     Name = x.Name,
                     ImageName = x.ImageName,
-                    Configs = x.GetConfigs().Select(x => new ImageCfgParamModel() { ParamName = x.Key, ParamType = x.Value }).ToList(),
+                    Configs = x.GetConfigs().Select(x => new ImageCfgParamViewModel() { ParamName = x.Key, ParamType = x.Value }).ToList(),
                     OperName = x.OperName,
                     OperDate = x.OperTime.ToString("yyyy/MM/dd HH:mm:ss")
                 };
@@ -66,7 +66,7 @@ public class ImageCfgController : Controller
     }
 
     [HttpPost]
-    public async Task<BaseResult> Edit([FromQuery] string id, [FromBody] ImageCfgEditModel model, CancellationToken cancellationToken = default)
+    public async Task<BaseResult> Edit([FromQuery] string id, [FromBody] ImageCfgEditViewModel model, CancellationToken cancellationToken = default)
     {
         try
         {

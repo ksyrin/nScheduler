@@ -10,23 +10,18 @@
                 <input type="hidden" @bind-value="@context.Id" />
             </div>
         </div>
-        <div class="row form-inline">
-            <div style="width: 350px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="参数名称"></BootstrapInputGroupLabel>
-                    <BootstrapInput @bind-Value="@context.Name" />
-                </BootstrapInputGroup>
-
-            </div>
+        <div class="row form-inline" style="width: 350px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="参数名称"></BootstrapInputGroupLabel>
+                <BootstrapInput @bind-Value="@context.Name" />
+            </BootstrapInputGroup>
         </div>
         <br />
-        <div class="row form-inline">
-            <div style="width: 350px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="参数内容"></BootstrapInputGroupLabel>
-                    <BootstrapInput @bind-Value="@context.Content" />
-                </BootstrapInputGroup>
-            </div>
+        <div class="row form-inline" style="width: 350px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="参数内容"></BootstrapInputGroupLabel>
+                <BootstrapInput @bind-Value="@context.Content" />
+            </BootstrapInputGroup>
         </div>
     </EditorBody>
 </DataGrid>
@@ -43,10 +38,10 @@
     private async Task<bool> Edit(ParameterCfgListViewModel item, bool isAdd)
     {
         var editModel = new ParameterCfgEditViewModel()
-        {
-            Name = item.Name,
-            Content = item.Content
-        };
+            {
+                Name = item.Name,
+                Content = item.Content
+            };
         return await request.Json(HttpInterfaces.ParamEdit + (isAdd ? "" : "?Id=" + item.Id), editModel);
     }
 

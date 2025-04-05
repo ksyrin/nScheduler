@@ -3,13 +3,6 @@ using System.ComponentModel;
 
 namespace nScheduler.Domain.ViewModels.Configs;
 
-public class ImageCfgParamModel
-{
-    public string ParamName { get; set; }
-
-    public ParameterType ParamType { get; set; }
-}
-
 public class ImageCfgViewModel
 {
     public string Id { get; set; }
@@ -20,7 +13,7 @@ public class ImageCfgViewModel
     [DisplayName("镜像地址")]
     public string ImageName { get; set; }
 
-    public List<ImageCfgParamModel> Configs { get; set; } = new();
+    public List<ImageCfgParamViewModel> Configs { get; set; } = new();
 
     [DisplayName("操作人")]
     public string OperName { get; set; }
@@ -29,7 +22,16 @@ public class ImageCfgViewModel
     public string OperDate { get; set; }
 }
 
-public class ImageCfgEditModel
+public class ImageCfgParamViewModel
+{
+    [DisplayName("配置名称")]
+    public string ParamName { get; set; }
+
+    [DisplayName("配置类型")]
+    public ParameterType ParamType { get; set; }
+}
+
+public class ImageCfgEditViewModel
 {
     public string Name { get; set; }
 

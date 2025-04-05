@@ -9,14 +9,13 @@
         <BootstrapInputGroup>
             <Button Color="Color.Success" OnClick="@SaveJob">保存</Button>
         </BootstrapInputGroup>
-
     </div>
 </div>
 
 <JobEdit @bind-Value="@ViewModel"></JobEdit>
 
 @code {
-    public JobViewModel ViewModel { get; set; } = new() { Cron = "0 0 0 * * ?" };
+    public JobViewModel ViewModel { get; set; } = new() { Cron = "0 0 0 * * ?", StartTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0), EndTime = new DateTime(3000, 12, 31, 23, 59, 59) };
 
     private async Task SaveJob()
     {

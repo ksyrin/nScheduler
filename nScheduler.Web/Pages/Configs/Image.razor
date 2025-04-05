@@ -21,7 +21,7 @@
 
     private async Task<bool> Edit(ImageCfgViewModel item, bool isAdd)
     {
-        var editModel = new ImageCfgEditModel()
+        var editModel = new ImageCfgEditViewModel()
         {
             Name = item.Name,
             ImageName = item.ImageName,

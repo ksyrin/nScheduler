@@ -228,44 +228,8 @@
         </BodyTemplate>
     </PopConfirmButton>
 </BootstrapInputGroup>
-<Popover Placement="Placement.Auto" Title="@("最近执行时间")" Content="@Content" IsHtml="true" Trigger="click">
-    <Button Icon="fas fa-eye" Color="Color.None" style="margin-left: 5px;" />
-</Popover>
 
-<style scoped>
-    .custom-popover {
-        --bs-popover-max-width: 800px;
-        max-width: 800px;
-    }
-
-    .custom-checkbox-item {
-        --bb-checkbox-item-width: 60px;
-        --bs-border-width: 0px;
-        padding-left: 0px;
-    }
-
-        .custom-checkbox-item .form-check {
-            padding-left: 0px;
-        }
-
-    .form-check-input {
-        --bs-border-width: 1px;
-    }
-
-    .tabs-card {
-        width: 640px;
-    }
-
-    .custom-checkbox-week-item {
-        --bb-checkbox-item-width: 120px;
-        --bs-border-width: 0px;
-        padding-left: 0px;
-    }
-
-        .custom-checkbox-week-item .form-check {
-            padding-left: 0px;
-        }
-</style>
+<Button Icon="fas fa-eye" Color="Color.Success" style="margin-left: 5px;" OnClick="ShowCronMessage" />
 
 @code {
     [Parameter]
@@ -282,8 +246,6 @@
 
     [Parameter]
     public DateTime EndTime { get; set; }
-
-    // public string Content { get; set; }
 
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
@@ -359,37 +321,51 @@
         await ValueChanged.InvokeAsync(Value);
     }
 
-    private string Content
-    {
-        get
-        {
-            if (Value.IsEmpty())
-            {
-                return DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
-            }
+    [Inject]
+    private ToastService ToastService { get; set; }
 
-            try
-            {
-                var crontab = Crontab.Parse(Value, CronStringFormat.WithSeconds);
-                List<string> dts = new List<string>();
-                var nextTime = StartTime;
-                for (int i = 0; i < 5; i++)
-                {
-                    nextTime = crontab.GetNextOccurrence(nextTime);
-                    if (nextTime > EndTime)
-                    {
-                        dts.Add("第" + (i + 1) + "次 : 超出结束时间");
-                        break;
-                    }
-                    dts.Add("第" + (i + 1) + "次 : " + nextTime.ToString("yyyy/MM/dd HH:mm:ss"));
-                }
-                return string.Join("<br />", dts);
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
+    /// <summary>
+    /// 弹出执行时间信息
+    /// </summary>
+    /// <returns></returns>
+    private async Task ShowCronMessage()
+    {
+        string result = string.Empty;
+        if (Value.IsEmpty())
+        {
+            result = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
         }
+
+        try
+        {
+            var crontab = Crontab.Parse(Value, CronStringFormat.WithSeconds);
+            List<string> dts = new List<string>();
+            var nextTime = StartTime;
+            for (int i = 0; i < 5; i++)
+            {
+                nextTime = crontab.GetNextOccurrence(nextTime);
+                if (nextTime > EndTime)
+                {
+                    dts.Add("第" + (i + 1) + "次 : 超出结束时间");
+                    break;
+                }
+                dts.Add("第" + (i + 1) + "次 : " + nextTime.ToString("yyyy/MM/dd HH:mm:ss"));
+            }
+            result = string.Join("<br />", dts);
+        }
+        catch (Exception ex)
+        {
+            result = ex.Message;
+        }
+
+        await ToastService.Show(new ToastOption()
+            {
+                Category = ToastCategory.Information,
+                Title = "最近执行时间",
+                Content = result,
+                IsAutoHide = true,
+                
+            });
     }
 
     #region 数据相关

@@ -10,31 +10,25 @@
                 <input type="hidden" @bind-value="@context.Id" />
             </div>
         </div>
-        <div class="row form-inline">
-            <div style="width: 450px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="消息名称"></BootstrapInputGroupLabel>
-                    <BootstrapInput @bind-Value="@context.Name" />
-                </BootstrapInputGroup>
-            </div>
+        <div class="row form-inline" style="width: 450px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="消息名称"></BootstrapInputGroupLabel>
+                <BootstrapInput @bind-Value="@context.Name" />
+            </BootstrapInputGroup>
         </div>
         <br />
-        <div class="row form-inline">
-            <div style="width: 450px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="消息类型"></BootstrapInputGroupLabel>
-                    <Select @bind-Value="@context.MsgType" Items="@Items"></Select>
-                </BootstrapInputGroup>
-            </div>
+        <div class="row form-inline" style="width: 450px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="消息类型"></BootstrapInputGroupLabel>
+                <Select @bind-Value="@context.MsgType" Items="@Items"></Select>
+            </BootstrapInputGroup>
         </div>
         <br />
-        <div class="row form-inline">
-            <div style="width: 450px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="消息地址"></BootstrapInputGroupLabel>
-                    <BootstrapInput @bind-Value="@context.Url" />
-                </BootstrapInputGroup>
-            </div>
+        <div class="row form-inline" style="width: 450px;">
+            <BootstrapInputGroup>
+                <BootstrapInputGroupLabel DisplayText="消息地址"></BootstrapInputGroupLabel>
+                <BootstrapInput @bind-Value="@context.Url" />
+            </BootstrapInputGroup>
         </div>
     </EditorBody>
 </DataGrid>
@@ -53,11 +47,11 @@
     private async Task<bool> Edit(MessageCfgViewModel item, bool isAdd)
     {
         var editModel = new MessageCfgEditModel()
-        {
-            Name = item.Name,
-            Url = item.Url,
-            Type = item.MsgType
-        };
+            {
+                Name = item.Name,
+                Url = item.Url,
+                Type = item.MsgType
+            };
         return await request.Json(HttpInterfaces.MessageEdit + (isAdd ? "" : "?Id=" + item.Id), editModel);
     }
 

@@ -14,7 +14,7 @@
     <div style="width: 450px;">
         <BootstrapInputGroup>
             <BootstrapInputGroupLabel DisplayText="作业名称"></BootstrapInputGroupLabel>
-            <BootstrapInput @bind-Value="@Value.Name" maxlength="50" ShowLabel="true" />
+            <BootstrapInput @bind-Value="Value.Name" maxlength="50" />
         </BootstrapInputGroup>
     </div>
 </div>
@@ -34,7 +34,7 @@
 <br />
 <div class="row form-inline">
     <div style="width: 640px;">
-        <CronSelector DisplayText="定时作业" @bind-Value="@Value.Cron" StartTime="@Value.StartTime" EndTime="@Value.EndTime"></CronSelector>
+        <CronSelector DisplayText="定时作业" @bind-Value="Value.Cron" StartTime="Value.StartTime" EndTime="Value.EndTime"></CronSelector>
     </div>
 </div>
 
@@ -43,14 +43,14 @@
     <div style="width: 450px;">
         <BootstrapInputGroup>
             <BootstrapInputGroupLabel DisplayText="镜像地址"></BootstrapInputGroupLabel>
-            <Select IsVirtualize="true" Items="Items" @bind-Value="@Value.ImageId" OnSelectedItemChanged="OnItemChanged"></Select>
+            <Select IsVirtualize="true" Items="Items" @bind-Value="Value.ImageId" OnSelectedItemChanged="OnItemChanged"></Select>
         </BootstrapInputGroup>
     </div>
 </div>
 
 @if (Value.Configs != null)
 {
-    <JobParamterSelector Value="@Value.Configs"></JobParamterSelector>
+    <JobParamterSelector Value="Value.Configs"></JobParamterSelector>
 }
 
 @code {
@@ -58,7 +58,7 @@
     public string Id { get; set; }
 
     [Parameter]
-    public JobViewModel Value { get; set; } = new() { Cron = "0 0 0 * * ?" };
+    public JobViewModel Value { get; set; } = new();
 
     [Parameter]
     public EventCallback<JobViewModel> ValueChanged { get; set; }

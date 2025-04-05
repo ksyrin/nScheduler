@@ -14,7 +14,7 @@
     </NotFound>
     <Header>
         <span class="ms-3 flex-fill">nScheduler任务调度中心</span>
-        <Logout ImageUrl="icon-192.png" DisplayName="@Context!.UserName" UserName="@Context!.UserId">
+        <Logout ImageUrl="icon-192.png" DisplayName="@Context?.UserName" UserName="@Context?.UserId">
             <LinkTemplate>
                 <LogoutLink Url="/logout" />
             </LinkTemplate>
@@ -43,7 +43,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Context = new BootstrapAppContext(await authenticationStateTask!);
+        var auth = await authenticationStateTask!;
+        if (auth.User.Claims == null || auth.User.Claims.Count() == 0) return;
+        Context = new BootstrapAppContext(auth);
         if (Context.UserName.IsEmpty()) return;
 
         ReloadMenus();

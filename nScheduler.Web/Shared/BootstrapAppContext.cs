@@ -1,8 +1,7 @@
-﻿using System;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Components.Authorization;
+﻿using Microsoft.AspNetCore.Components.Authorization;
 using nScheduler.Common.Extensions;
 using nScheduler.Common.Models;
+using System.Security.Claims;
 
 namespace nScheduler.Web.Shared;
 
@@ -18,7 +17,6 @@ public class BootstrapAppContext
         Role = Enum.Parse<UserRole>(roleStr);
     }
 
-
     public string UserId { get; init; }
 
     public string UserName { get; init; }
@@ -31,4 +29,3 @@ public class BootstrapAppContext
 
     public string UserRole => Role.GetEnumDescription();
 }
-

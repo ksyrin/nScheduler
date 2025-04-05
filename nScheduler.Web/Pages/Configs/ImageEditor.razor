@@ -6,22 +6,18 @@
     </div>
 </div>
 <br />
-<div class="row form-inline">
-    <div style="width: 450px;">
-        <BootstrapInputGroup>
-            <BootstrapInputGroupLabel DisplayText="镜像名称"></BootstrapInputGroupLabel>
-            <BootstrapInput @bind-Value="@Model.Name" />
-        </BootstrapInputGroup>
-    </div>
+<div class="row form-inline" style="width: 450px;">
+    <BootstrapInputGroup>
+        <BootstrapInputGroupLabel DisplayText="镜像名称"></BootstrapInputGroupLabel>
+        <BootstrapInput @bind-Value="@Model.Name" />
+    </BootstrapInputGroup>
 </div>
 <br />
-<div class="row form-inline">
-    <div style="width: 450px;">
-        <BootstrapInputGroup>
-            <BootstrapInputGroupLabel DisplayText="镜像地址"></BootstrapInputGroupLabel>
-            <BootstrapInput @bind-Value="@Model.ImageName" />
-        </BootstrapInputGroup>
-    </div>
+<div class="row form-inline" style="width: 450px;">
+    <BootstrapInputGroup>
+        <BootstrapInputGroupLabel DisplayText="镜像地址"></BootstrapInputGroupLabel>
+        <BootstrapInput @bind-Value="@Model.ImageName" />
+    </BootstrapInputGroup>
 </div>
 <br />
 <div class="row form-inline">
@@ -29,41 +25,57 @@
         <Button Text="添加参数" Icon="fas fa-plus" OnClick="@(async e => await CreateParam(Model))"></Button>
     </div>
 </div>
-<Scroll Height="250px;">
-    @foreach (var parm in Model.Configs)
-    {
-        <br />
-        <div class="row form-inline">
-            <div style="width: 450px;">
-                <BootstrapInputGroup>
-                    <BootstrapInputGroupLabel DisplayText="镜像参数"></BootstrapInputGroupLabel>
-                    <Select @bind-Value="@parm.ParamType"></Select>
-                    <BootstrapInput @bind-Value="@parm.ParamName" />
-                    <Button Icon="fas fa-trash-can" OnClick="@(async e =>await RemoveParam(parm!))"></Button>
-                </BootstrapInputGroup>
-            </div>
-        </div>
-    }
+
+<br />
+<Scroll Height="250px;" Width="480px;">
+    <Table TItem="ImageCfgParamViewModel"
+           IsStriped="true" IsBordered="false"
+           ShowToolbar="false" ShowDeleteButton="false"
+           ShowRefresh="false" ClickToSelect="false"
+           OnQueryAsync="OnQueryAsync">
+        <TableColumns>
+            <TableColumn @bind-Field="@context.ParamType" Width="145">
+                <Template Context="value">
+                    <Select Color="Color.Dark" @bind-Value="@value.Row.ParamType"></Select>
+                </Template>
+            </TableColumn>
+            <TableColumn @bind-Field="@context.ParamName" Width="240">
+                <Template Context="value">
+                    <BootstrapInput Color="Color.Dark" @bind-Value="@value.Row.ParamName" />
+                </Template>
+            </TableColumn>
+            <TableTemplateColumn Text="操作">
+                <Template Context="value">
+                    <Button Icon="fas fa-trash-can" Color="Color.Danger" OnClick="@(async e =>await RemoveParam(value.Row))"></Button>
+                </Template>
+            </TableTemplateColumn>
+        </TableColumns>
+    </Table>
 </Scroll>
 
 @code {
-    private IEnumerable<SelectedItem> Types = ParameterType.input.GetEnumDescriptions().Select(x => new SelectedItem(x.Key.ToString(), x.Value));
+    private IEnumerable<ImageCfgParamViewModel> Items { get; set; }
 
     [Parameter]
     public ImageCfgViewModel Model { get; set; }
 
     private Task CreateParam(ImageCfgViewModel item)
     {
-        item.Configs.Add(new ImageCfgParamModel());
+        item.Configs.Add(new ImageCfgParamViewModel());
 
         return Task.CompletedTask;
     }
 
-    private Task RemoveParam(ImageCfgParamModel item)
+    private Task RemoveParam(ImageCfgParamViewModel item)
     {
         Model.Configs.Remove(item);
 
         return Task.CompletedTask;
+    }
+
+    private Task<QueryData<ImageCfgParamViewModel>> OnQueryAsync(QueryPageOptions options)
+    {
+        return Task.FromResult(new QueryData<ImageCfgParamViewModel>() { Items = Model.Configs, TotalCount = Model.Configs.Count, IsSorted = false, IsFiltered = false, IsSearch = false });
     }
 
     //private Task OnItemChanged(SelectedItem item)
