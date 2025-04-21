@@ -23,7 +23,6 @@
 	<ItemGroup>
 	  <Folder Include="Jobs\" />
 	  <Folder Include="Events\JobInfo\" />
-	  <Folder Include="Events\JobLog\" />
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\nScheduler.Domain\nScheduler.Domain.csproj" />

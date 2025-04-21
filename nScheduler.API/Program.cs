@@ -4,7 +4,6 @@ using Microsoft.IdentityModel.Tokens;
 using nScheduler.Exec;
 using nScheduler.Imp;
 using nScheduler.Imp.Repositories;
-using Quartz;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,17 +67,17 @@ if (!File.Exists(dbfile))
     await context.InitSeed();
 }
 
-app.Lifetime.ApplicationStarted.Register(() =>
-{
-    var scheduler = app.Services.GetRequiredService<IScheduler>();
-    scheduler.Start().Wait();
-});
+//app.Lifetime.ApplicationStarted.Register(() =>
+//{
+//    var scheduler = app.Services.GetRequiredService<IScheduler>();
+//    scheduler.Start().Wait();
+//});
 
-app.Lifetime.ApplicationStopping.Register(() =>
-{
-    var scheduler = app.Services.GetRequiredService<IScheduler>();
-    scheduler.Shutdown().Wait();
-});
+//app.Lifetime.ApplicationStopping.Register(() =>
+//{
+//    var scheduler = app.Services.GetRequiredService<IScheduler>();
+//    scheduler.Shutdown().Wait();
+//});
 
 app.UseCors("any");
 

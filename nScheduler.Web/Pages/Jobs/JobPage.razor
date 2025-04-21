@@ -19,6 +19,7 @@
         <TableColumn Field="@context.Id" FieldName="Id" Text="操作">
             <Template Context="Value">
                 <BootstrapInputGroup>
+                    <Button Size="Size.ExtraSmall" Icon="fas fa-book" Color="Color.Secondary" OnClick="@( async e => await DetailJob(Value.Row.Name))">详情</Button>
                     <Button Size="Size.ExtraSmall" Icon="fas fa-bullhorn" Color="Color.Success" OnClick="@( async e => await ExecJob(Value.Value))">执行</Button>
                     <Button Size="Size.ExtraSmall" Icon="fa-regular fa-pen-to-square" Color="Color.Primary" OnClick="@( async e => await EditJob(Value.Value))">编辑</Button>
                     <Button Size="Size.ExtraSmall" Icon="fas fa-ban" Color="Color.Danger" OnClick="@( async e => await InvalidJob(Value.Value))">失效</Button>
@@ -95,6 +96,28 @@
                 IsSearch = options.CustomerSearches.Any() || !string.IsNullOrEmpty(options.SearchText),
                 IsAdvanceSearch = false
             };
+    }
+
+    /// <summary>
+    /// 作业详情
+    /// </summary>
+    /// <param name="id"></param>
+    private async Task DetailJob(string id)
+    {
+        var op = new DialogOption()
+            {
+                Title = "作业执行详情",
+                Component = BootstrapDynamicComponent.CreateComponent<JobDetail>(new Dictionary<string, object?>()
+                {
+                    { nameof(JobEdit.Id), id }
+
+                }),
+                Size = Size.ExtraLarge,
+                IsCentered = true,
+                IsScrolling = true
+            };
+
+        await DialogService.Show(op);
     }
 
     /// <summary>

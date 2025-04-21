@@ -1,0 +1,87 @@
+﻿@using Domain.ViewModels.Jobs
+@inject HttpRequest Request
+
+<Row ItemsPerRow="ItemsPerRow.Two">
+    <Card>
+        <BodyTemplate>
+            <Chart @ref="LineChart" Height="320px" Width="auto" style="display: block; "
+                   ChartType="ChartType.Line" OnInitAsync="@OnInitLineChartAsync"></Chart>
+        </BodyTemplate>
+    </Card>
+
+    <Card>
+        <BodyTemplate>
+            <Chart @ref="PieChart" Height="320px" Width="auto" style="display: block; "
+                   ChartType="ChartType.Doughnut" OnInitAsync="@OnInitPieChartAsync"></Chart>
+        </BodyTemplate>
+    </Card>
+</Row>
+
+@code {
+    [Parameter]
+    public string Id { get; set; }
+
+    private IEnumerable<JobLogDetailViewModel> Data;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var search = new JobLogSearchViewModel()
+            {
+                JobName = Id,
+            };
+        var result = await Request.Page<JobLogDetailViewModel>(HttpInterfaces.LogDetail, search);
+        if (result != null && result.Total > 0)
+        {
+            Data = result.Items;
+            LineChart?.Reload();
+            PieChart?.Reload();
+        }
+    }
+
+    private Chart LineChart { get; set; }
+
+    private Task<ChartDataSource> OnInitLineChartAsync()
+    {
+        System.Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(Data));
+        var ds = new ChartDataSource();
+        if (Data != null)
+        {
+            ds.Options.Title = $"近30次的作业执行";
+            ds.Options.X.Title = "开始时间";
+            ds.Options.Y.Title = "执行时间";
+            ds.Options.Y.PositionLeft = true;
+            ds.Options.ShowLegend = false;
+            ds.Labels = Data.Select(x => x.StartTime);
+            ds.Data.Add(new ChartDataset()
+                {
+                    Label = "执行时间",
+                    Data = Data.Select(x => x.IntervalTime.ToString())
+                });
+        }
+
+        return Task.FromResult(ds);
+    }
+
+    private Chart PieChart { get; set; }
+
+    private Task<ChartDataSource> OnInitPieChartAsync()
+    {
+        var ds = new ChartDataSource();
+        if (Data != null)
+        {
+            var states = Data.GroupBy(x => x.StateStr);
+            ds.Labels = states.Select(x => x.Key);
+            ds.Options.Title = $"近30次的作业执行状态";
+            ds.Options.ShowLegend = false;
+            ds.Options.ShowXScales = false;
+            ds.Options.ShowYScales = false;
+
+            ds.Data.Add(new ChartDataset()
+                {
+                    Label = "作业状态",
+                    Data = states.Select(x => x.Count().ToString())
+                });
+        }
+        return Task.FromResult(ds);
+    }
+}

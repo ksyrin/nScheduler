@@ -45,5 +45,7 @@ public class HttpInterfaces
 
     public static string LogPage => "/api/JobLog/Page";
 
+    public static string LogDetail => "/api/JobLog/Detail";
+
     public static string LogStop => "/api/JobLog/Stop";
 }

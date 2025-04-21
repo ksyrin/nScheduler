@@ -11,7 +11,7 @@ internal class Program
             Console.WriteLine($"{e.Key} = {e.Value}");
         }
 
-        Thread.Sleep(1000 * Random.Shared.Next(1000, 3000));
+        Thread.Sleep(1000 * Random.Shared.Next(100, 300));
 
         Console.Write("Args: ");
         if (args.Length is var length && length > 0)

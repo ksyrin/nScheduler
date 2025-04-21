@@ -29,7 +29,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Models\Jobs\" />
-    <Folder Include="ViewModels\Jobs\" />
     <Folder Include="Events\" />
   </ItemGroup>
   <ItemGroup>

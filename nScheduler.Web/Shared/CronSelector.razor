@@ -231,6 +231,41 @@
 
 <Button Icon="fas fa-eye" Color="Color.Success" style="margin-left: 5px;" OnClick="ShowCronMessage" />
 
+<style scoped>
+    .custom-popover {
+        --bs-popover-max-width: 800px;
+        max-width: 800px;
+    }
+
+    .custom-checkbox-item {
+        --bb-checkbox-item-width: 60px;
+        --bs-border-width: 0px;
+        padding-left: 0px;
+    }
+
+        .custom-checkbox-item .form-check {
+            padding-left: 0px;
+        }
+
+    .form-check-input {
+        --bs-border-width: 1px;
+    }
+
+    .tabs-card {
+        width: 640px;
+    }
+
+    .custom-checkbox-week-item {
+        --bb-checkbox-item-width: 120px;
+        --bs-border-width: 0px;
+        padding-left: 0px;
+    }
+
+        .custom-checkbox-week-item .form-check {
+            padding-left: 0px;
+        }
+</style>
+
 @code {
     [Parameter]
     public string DisplayText { get; set; }

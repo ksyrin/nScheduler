@@ -33,6 +33,11 @@ public class JobLogModel : IAggregateRoot<Guid>
     public DateTime? EndTime { get; set; }
 
     /// <summary>
+    /// 运行时间
+    /// </summary>
+    public double IntervalTime { get; set; }
+
+    /// <summary>
     /// 内容
     /// </summary>
     public string? Content { get; set; }
@@ -62,6 +67,7 @@ public class JobLogModel : IAggregateRoot<Guid>
         if (status is JobStatus.Completed or JobStatus.Error)
         {
             EndTime = DateTime.Now;
+            IntervalTime = Math.Round((EndTime.Value - BeginTime).TotalSeconds, 0);
         }
     }
 

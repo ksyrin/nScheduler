@@ -29,6 +29,24 @@ public class JobLogController : Controller
     }
 
     [HttpPost]
+    public async Task<QueryResult<JobLogDetailViewModel>?> Detail([FromBody] JobLogSearchViewModel viewModel, CancellationToken cancellationToken = default)
+    {
+        var response = await mediator.Send(new JobLogDetail
+        {
+            Model = new JobLogSearchViewModel
+            {
+                JobName = viewModel.JobName
+            }
+        }, cancellationToken);
+
+        return new QueryResult<JobLogDetailViewModel>()
+        {
+            Total = response == null ? 0 : 1,
+            Items = response == null ? Array.Empty<JobLogDetailViewModel>() : response
+        };
+    }
+
+    [HttpPost]
     public async Task<QueryResult<JobLogViewModel>> Page([FromBody] JobLogSearchViewModel viewModel, int page, int size, CancellationToken cancellationToken = default)
     {
         var response = await mediator.Send(new JobLogPage
