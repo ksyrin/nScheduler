@@ -1,4 +1,5 @@
-﻿@using TimeCrontab
+﻿@using System.Diagnostics.CodeAnalysis
+@using TimeCrontab
 
 <BootstrapInputGroup>
     @if (!DisplayText.IsEmpty())
@@ -285,6 +286,23 @@
     [Parameter]
     public EventCallback<string> ValueChanged { get; set; }
 
+    [Inject]
+    [NotNull]
+    private ToastService ToastService { get; set; }
+
+    [NotNull]
+    private ToastContainer? ToastContainer { get; set; }
+
+
+    [CascadingParameter]
+    [NotNull]
+    private BootstrapBlazorRoot? Root { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ToastContainer = Root?.ToastContainer;
+    }
+
     private UniSelectedObject Second { get; set; } = new() { ExecTimes = new int[] { 0 } };
 
     private UniSelectedObject Minute { get; set; } = new() { ExecTimes = new int[] { 0 } };
@@ -356,9 +374,6 @@
         await ValueChanged.InvokeAsync(Value);
     }
 
-    [Inject]
-    private ToastService ToastService { get; set; }
-
     /// <summary>
     /// 弹出执行时间信息
     /// </summary>
@@ -393,13 +408,13 @@
             result = ex.Message;
         }
 
+        ToastContainer?.SetPlacement(Placement.TopCenter);
         await ToastService.Show(new ToastOption()
             {
                 Category = ToastCategory.Information,
                 Title = "最近执行时间",
                 Content = result,
-                IsAutoHide = true,
-                
+                IsAutoHide = true
             });
     }
 
