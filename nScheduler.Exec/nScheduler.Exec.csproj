@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Docker.DotNet" Version="3.125.15" />
+		<PackageReference Include="Docker.DotNet.Enhanced" Version="3.129.0" />
 		<PackageReference Include="KubernetesClient" Version="14.0.2" />
 		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />

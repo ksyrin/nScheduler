@@ -90,8 +90,8 @@ public class DockerEvent : ISchedulerEvent
             {
                 Name = id.ToString("N"),
                 Image = model.Image.ImageName,
-                Cmd = new string[] { cmds.ToJson() },
-                Env = envs.Select(x => x.Key + "=" + x.Value).ToList()
+                Cmd = [cmds.ToJson()],
+                Env = [.. envs.Select(x => x.Key + "=" + x.Value)]
             }, cancellationToken);
             // 运行容器
             await client.Containers.StartContainerAsync(id.ToString("N"), new ContainerStartParameters(), cancellationToken);
@@ -117,7 +117,7 @@ public class DockerEvent : ISchedulerEvent
             if (response != null)
             {
                 model.UpdateStatus(response.State.Status == "exited" ? Common.Models.JobStatus.Completed : Common.Models.JobStatus.Running);
-                var stream = await client.Containers.GetContainerLogsAsync(id, true, new ContainerLogsParameters
+                var stream = await client.Containers.GetContainerLogsAsync(id, new ContainerLogsParameters
                 {
                     ShowStdout = true,
                     ShowStderr = true
