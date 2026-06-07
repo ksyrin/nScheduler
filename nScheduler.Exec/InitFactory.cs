@@ -6,6 +6,7 @@ using nScheduler.Common.Extensions;
 using nScheduler.Domain.Events;
 using nScheduler.Exec.Dockers;
 using nScheduler.Exec.K8s;
+using System.Security.Cryptography;
 
 namespace nScheduler.Exec;
 
@@ -32,12 +33,12 @@ public static class InitFactory
         // Docker 相关的配置
         else if (configuration.GetSection("client:dockersock") is var sock && sock.Exists() && !sock.Value.IsEmpty())
         {
-            services.AddScoped<IDockerClient>(x => new DockerClientConfiguration(new Uri(sock.Value)).CreateClient());
+            services.AddScoped<IDockerClient>(x => new DockerClientBuilder().WithEndpoint(new Uri(sock.Value!)).Build());
             type = InitType.Docker;
         }
         else
         {
-            services.AddScoped<IDockerClient>(x => new DockerClientConfiguration().CreateClient());
+            services.AddScoped<IDockerClient>(x => new DockerClientBuilder().Build());
             type = InitType.Docker;
         }
 
