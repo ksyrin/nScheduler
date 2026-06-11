@@ -1,5 +1,6 @@
 ﻿using nScheduler.Common.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text;
 
 namespace nScheduler.Domain.Models.Jobs;
 
@@ -40,7 +41,20 @@ public class JobLogModel : IAggregateRoot<Guid>
     /// <summary>
     /// 内容
     /// </summary>
-    public string? Content { get; set; }
+    public string? Content
+    {
+        get
+        {
+            return sb.ToString();
+        }
+        set
+        {
+            sb.AppendLine(value);
+        }
+    }
+
+    [NotMapped]
+    private StringBuilder sb = new();
 
     /// <summary>
     /// 作业信息
@@ -72,4 +86,9 @@ public class JobLogModel : IAggregateRoot<Guid>
     }
 
     public bool IsFinish => JobState is JobStatus.Completed or JobStatus.Error;
+
+    public void Append(string text)
+    {
+        sb.AppendLine(text);
+    }
 }

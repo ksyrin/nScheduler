@@ -11,6 +11,7 @@
        ShowToolbar="false" ShowCardView="false"
        ShowAddButton="false" ShowEditButton="false" ShowDeleteButton="false" ShowEmpty="true"
        ShowSearch="true" ShowAdvancedSearch="true" CustomerSearchModel="SearchModel" SearchMode="SearchMode.Top" CollapsedTopSearch="true"
+       IsAutoRefresh="true" AutoRefreshInterval="5000"
        OnQueryAsync="OnQueryAsync">
 
     <TableColumns>
@@ -24,7 +25,7 @@
                     <Button Size="Size.ExtraSmall" Icon="fas fa-eye" OnClick="async () => await ShowLog(Value.Row)">查看</Button>
                     @if (context.State == JobStatus.Running)
                     {
-                        <Button Size="Size.ExtraSmall" Icon="fas fa-ban" Color="Color.Danger" OnClick="async () => await StopJob(Value.Row) ">停止</Button>
+                        <Button Size="Size.ExtraSmall" Icon="fas fa-ban" Color="Color.Danger" OnClick="async () => await StopJob(Value.Row)">停止</Button>
                     }
                 </BootstrapInputGroup>
             </Template>

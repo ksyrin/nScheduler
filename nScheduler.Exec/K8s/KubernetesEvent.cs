@@ -5,71 +5,83 @@ using nScheduler.Common.Extensions;
 using nScheduler.Common.Models;
 using nScheduler.Domain.Events;
 using nScheduler.Domain.Models.Jobs;
+using System.Runtime.CompilerServices;
+using System.Text;
 
-namespace nScheduler.Exec.K8s
+namespace nScheduler.Exec.K8s;
+
+public class KubernetesEvent : ISchedulerEvent
 {
-    public class KubernetesEvent : ISchedulerEvent
+    private readonly Kubernetes client;
+    private readonly string namespaceName;
+
+    public KubernetesEvent(Kubernetes client, IConfiguration configuration)
     {
-        private readonly Kubernetes client;
+        this.client = client;
+        namespaceName = configuration.GetSection("client:namespace").Value!;
+    }
 
-        private readonly string namespaceName;
+    public async Task RemoveJob(Guid Id, CancellationToken cancellationToken = default)
+    {
+        await client.DeleteNamespacedPodAsync(Id.ToStringN(), namespaceName, cancellationToken: cancellationToken);
+    }
 
-        public KubernetesEvent(Kubernetes client, IConfiguration configuration)
+    public async Task<JobLogModel> StartJob(JobInfoModel model, Dictionary<string, string> cmds, Dictionary<string, string> envs, CancellationToken cancellationToken = default)
+    {
+        try
         {
-            this.client = client;
-            namespaceName = configuration.GetSection("client:namespace").Value!;
-        }
-
-        public async Task RemoveJob(Guid Id, CancellationToken cancellationToken = default)
-        {
-            await client.DeleteNamespacedPodAsync(Id.ToStringN(), namespaceName, cancellationToken: cancellationToken);
-        }
-
-        public async Task<JobLogModel> StartJob(JobInfoModel model, Dictionary<string, string> cmds, Dictionary<string, string> envs, CancellationToken cancellationToken = default)
-        {
-            try
+            var id = Guid.NewGuid();
+            await client.CreateNamespacedPodAsync(new V1Pod
             {
-                var id = Guid.NewGuid();
-                await client.CreateNamespacedPodAsync(new k8s.Models.V1Pod
+                Metadata = new V1ObjectMeta
                 {
-                    Metadata = new k8s.Models.V1ObjectMeta
-                    {
-                        Name = id.ToStringN(),
-                    },
-                    Kind = "Pod",
-                    ApiVersion = "v1",
-                    Spec = new k8s.Models.V1PodSpec
-                    {
-                        Containers = new List<V1Container> {
-                            {
-                                new V1Container
-                                {
-                                    Image = model.Image.ImageName,
-                                    Name = id.ToStringN(),
-                                    Args = new string[] { cmds.ToJson() },
-                                    Env = envs.Select(x => new V1EnvVar { Name = x.Key, Value = x.Value} ).ToList()
-                                }
-                            } }
+                    Name = id.ToStringN(),
+                },
+                Kind = "Pod",
+                ApiVersion = "v1",
+                Spec = new V1PodSpec
+                {
+                    Containers = new List<V1Container> {
+                        new V1Container
+                        {
+                            Image = model.Image.ImageName,
+                            Name = id.ToStringN(),
+                            Args = new string[] { cmds.ToJson() },
+                            Env = envs.Select(x => new V1EnvVar { Name = x.Key, Value = x.Value} ).ToList()
+                        }
                     }
-                }, namespaceName, cancellationToken: cancellationToken);
+                }
+            }, namespaceName, cancellationToken: cancellationToken);
 
-                return new JobLogModel(id, model.ImageId, model.Name, DateTime.Now, JobStatus.Running, model);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("运行作业容器失败: " + ex.Message);
-            }
+            return new JobLogModel(id, model.ImageId, model.Name, DateTime.Now, JobStatus.Running, model);
         }
-
-        public async Task UpdateState(JobLogModel model, CancellationToken cancellationToken = default)
+        catch (Exception ex)
         {
-            var pod = await client.ReadNamespacedPodAsync(model.Id.ToStringN(), namespaceName);
-            var status = pod.Status.Phase;
-            model.UpdateStatus(status == "Completed" ? JobStatus.Completed : status == "Running" ? JobStatus.Running : JobStatus.Error);
+            throw new Exception("运行作业容器失败: " + ex.Message);
+        }
+    }
 
-            var result = await client.ReadNamespacedPodLogAsync(model.Id.ToStringN(), namespaceName);
-            StreamReader sr = new StreamReader(result!);
-            model.Content = await sr.ReadToEndAsync();
+    public async IAsyncEnumerable<string> GetLogsAsync(Guid id, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var podName = id.ToStringN();
+
+        // Ensure pod exists and is in a terminal state or still running
+        using var stream = await client.ReadNamespacedPodLogAsync(
+            podName,
+            namespaceName,
+            follow: true,
+            previous: false,
+            cancellationToken: cancellationToken
+        );
+
+        using var reader = new StreamReader(stream, Encoding.UTF8);
+        while (!reader.EndOfStream && !cancellationToken.IsCancellationRequested)
+        {
+            var line = await reader.ReadLineAsync();
+            if (line != null)
+            {
+                yield return line;
+            }
         }
     }
 }

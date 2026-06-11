@@ -2,6 +2,7 @@
 using nScheduler.Common.Extensions;
 using nScheduler.Domain.Repositories.Jobs;
 using nScheduler.Domain.ViewModels.Jobs;
+using nScheduler.Imp.Jobs;
 
 namespace nScheduler.Imp.Events.JobLog;
 
@@ -22,7 +23,7 @@ public class JobLogSignleHandler : IRequestHandler<JobLogSignle, JobLogViewModel
     public async Task<JobLogViewModel?> Handle(JobLogSignle request,
         CancellationToken cancellationToken)
     {
-        var item = await repository.Find(request.Id.ToGuid(), cancellationToken);
+        var item = SchedulerJob.Logs.TryGetValue(request.Id, out var log) ? log : await repository.Find(request.Id.ToGuid(), cancellationToken);
         return item == null ? null : new JobLogViewModel
         {
             Id = item.Id.ToStringN(),

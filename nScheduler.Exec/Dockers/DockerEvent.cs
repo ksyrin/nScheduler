@@ -3,6 +3,7 @@ using Docker.DotNet.Models;
 using nScheduler.Common.Extensions;
 using nScheduler.Domain.Events;
 using nScheduler.Domain.Models.Jobs;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,7 +12,6 @@ namespace nScheduler.Exec.Dockers;
 public class DockerEvent : ISchedulerEvent
 {
     private readonly IDockerClient client;
-
     private List<string> Images { get; set; }
 
     public DockerEvent(IDockerClient client)
@@ -37,7 +37,6 @@ public class DockerEvent : ISchedulerEvent
 
     private async Task PullImage(string imageName, CancellationToken cancellationToken = default)
     {
-        // 获取镜像列表
         if (Images.Count == 0)
         {
             try
@@ -60,7 +59,7 @@ public class DockerEvent : ISchedulerEvent
                 throw new Exception("获取作业镜像列表失败: " + e.Message);
             }
         }
-        // 拉取镜像
+
         if (!Images.Any(x => x.Contains(imageName)))
         {
             try
@@ -85,7 +84,6 @@ public class DockerEvent : ISchedulerEvent
         try
         {
             var id = Guid.NewGuid();
-            // 创建容器
             await client.Containers.CreateContainerAsync(new CreateContainerParameters()
             {
                 Name = id.ToString("N"),
@@ -93,11 +91,9 @@ public class DockerEvent : ISchedulerEvent
                 Cmd = [cmds.ToJson()],
                 Env = [.. envs.Select(x => x.Key + "=" + x.Value)]
             }, cancellationToken);
-            // 运行容器
             await client.Containers.StartContainerAsync(id.ToString("N"), new ContainerStartParameters(), cancellationToken);
-            // 更新作业信息
+
             model.Status = 1;
-            // 返回模型
             return new JobLogModel(id, model.ImageId, model.Name, DateTime.Now, Common.Models.JobStatus.Running, model);
         }
         catch (Exception ex)
@@ -106,31 +102,59 @@ public class DockerEvent : ISchedulerEvent
         }
     }
 
-    public async Task UpdateState(JobLogModel model, CancellationToken cancellationToken = default)
+    public async IAsyncEnumerable<string> GetLogsAsync(Guid id, [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        try
-        {
-            var id = model.Id.ToStringN();
-            var response = await client.Containers.InspectContainerAsync(id, cancellationToken);
+        var containerId = id.ToString("N");
 
-            // 检查各作业的状态
-            if (response != null)
+        var multiplexedStream = await client.Containers.GetContainerLogsAsync(containerId, new ContainerLogsParameters
+        {
+            ShowStdout = true,
+            ShowStderr = true,
+            Follow = true, // Enable real-time streaming
+            Timestamps = false
+        }, cancellationToken);
+
+        StringBuilder sb = new();
+        byte[] buffer = System.Buffers.ArrayPool<byte>.Shared.Rent(81920);
+
+        while (true)
+        {
+            if (cancellationToken.IsCancellationRequested)
             {
-                model.UpdateStatus(response.State.Status == "exited" ? Common.Models.JobStatus.Completed : Common.Models.JobStatus.Running);
-                var stream = await client.Containers.GetContainerLogsAsync(id, new ContainerLogsParameters
+                System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
+                yield break;
+            }
+
+            Array.Clear(buffer, 0, buffer.Length);
+            MultiplexedStream.ReadResult readResult = await multiplexedStream.ReadOutputAsync(buffer, 0, buffer.Length, cancellationToken);
+
+            if (readResult.EOF)
+            {
+                break;
+            }
+
+            if (readResult.Count > 0)
+            {
+                var responseLine = Encoding.UTF8.GetString(buffer, 0, readResult.Count);
+                var tmp = Regex.Replace(Regex.Replace(Regex.Replace(responseLine.Trim(), "\n", "nr"), @"[\p{C}]", ""), "nr", "\n\r");
+
+                // Yield lines as they arrive
+                var lines = tmp.Split(new[] { "\n\r", "\n" }, StringSplitOptions.None);
+                foreach (var line in lines)
                 {
-                    ShowStdout = true,
-                    ShowStderr = true
-                }, cancellationToken);
-                model.Content = await ReadOutputAsync(stream, cancellationToken);
+                    yield return line;
+                }
+            }
+            else
+            {
+                await Task.Delay(100, cancellationToken); // Prevent busy waiting
             }
         }
-        catch (Exception e)
-        {
-            throw new Exception("更新作业状态失败：" + e.Message);
-        }
+
+        System.Buffers.ArrayPool<byte>.Shared.Return(buffer);
     }
 
+    // Helper for non-streaming logs (used in UpdateState)
     private static async Task<string> ReadOutputAsync(MultiplexedStream multiplexedStream, CancellationToken cancellationToken = default)
     {
         StringBuilder sb = new();

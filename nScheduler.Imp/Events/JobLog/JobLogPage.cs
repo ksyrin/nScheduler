@@ -2,6 +2,7 @@
 using nScheduler.Common.Extensions;
 using nScheduler.Domain.Repositories.Jobs;
 using nScheduler.Domain.ViewModels.Jobs;
+using nScheduler.Imp.Jobs;
 
 namespace nScheduler.Imp.Events.JobLog;
 
@@ -25,10 +26,18 @@ public class JobInfoPageHandler : IRequestHandler<JobLogPage, (int, IEnumerable<
 
     public async Task<(int, IEnumerable<JobLogViewModel>)> Handle(JobLogPage request, CancellationToken cancellationToken)
     {
-        var result = await repository.Page(request.Model.GetExpression(),
+        var (count, list) = await repository.Page(request.Model.GetExpression(),
             request.Page, request.Size, cancellationToken);
 
-        return (result.Item1, result.Item2.Select(x =>
+        foreach (var i in list)
+        {
+            if (SchedulerJob.Logs.TryGetValue(i.Id.ToStringN(), out var tmp))
+            {
+                i.Content = tmp.Content;
+            }
+        }
+
+        return (count, list.Select(x =>
         {
             return new JobLogViewModel()
             {

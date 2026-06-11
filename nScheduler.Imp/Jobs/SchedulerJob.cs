@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using nScheduler.Common.Extensions;
 using nScheduler.Common.Models;
 using nScheduler.Domain.Events;
+using nScheduler.Domain.Models.Jobs;
 using nScheduler.Domain.Repositories.Configs;
 using nScheduler.Domain.Repositories.Jobs;
 using nScheduler.Imp.Events.Msg;
@@ -12,6 +13,8 @@ namespace nScheduler.Imp.Jobs;
 
 public class SchedulerJob : IJob
 {
+    public static Dictionary<string, JobLogModel> Logs { get; } = new();
+
     private readonly IServiceProvider provider;
 
     public SchedulerJob(IServiceProvider provider)
@@ -65,28 +68,18 @@ public class SchedulerJob : IJob
         var log = await @event.StartJob(job, inputs, envs, context.CancellationToken);
         await logRepository.Edit(log, context.CancellationToken);
         await jobRepository.Edit(job, context.CancellationToken);
+        Logs.Add(log.Id.ToStringN(), log);
 
         try
         {
-            // 检查任务运行状态
-            while (true)
+            // 获取日志
+            await foreach (var res in @event.GetLogsAsync(log.Id, context.CancellationToken))
             {
-                await Task.Delay(1000 * 60 * 1);
-
-                await @event.UpdateState(log, context.CancellationToken);
-
-                await logRepository.Edit(log, context.CancellationToken);
-
-                if (context.CancellationToken.IsCancellationRequested)
-                {
-                    throw new JobExecutionException("作业已终止");
-                }
-
-                if (log.IsFinish)
-                {
-                    break;
-                }
+                log.Append(res);
             }
+
+            log.UpdateStatus(JobStatus.Completed);
+            await logRepository.Edit(log, context.CancellationToken);
         }
         catch (Exception ex)
         {
@@ -95,6 +88,9 @@ public class SchedulerJob : IJob
         }
         finally
         {
+            // 移除列表的日志记录
+            Logs.Remove(log.Id.ToStringN());
+
             // 更新作业状态
             await @event.RemoveJob(log.Id);
             await jobRepository.SetJobFinish(job,
